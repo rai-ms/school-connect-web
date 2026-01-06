@@ -1,0 +1,8 @@
+# Documentation: https://pub.dev/packages/flutter_native_splash
+
+flutter_native_splash:
+  color: "#000201"
+  color_dark: "#000201"
+  image: assets/images/logo.png
+  image_android: assets/images/logo.png
+  image_dark_android: assets/images/logo.png

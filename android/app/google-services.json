@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "982174380070",
+    "project_id": "schoolconnect-295d6",
+    "storage_bucket": "schoolconnect-295d6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:982174380070:android:8a52fd336f93457963b6e7",
+        "android_client_info": {
+          "package_name": "com.student.connect.student_management"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRFRsu1CYyJNPONrpUsj75XX_Syuu4w0o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
