@@ -83,6 +83,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   asset_generator:
   mockito: ^5.4.4
+  flutter_flavorizr: ^2.2.3
 
 flutter_launcher_icons:
   android: true
@@ -119,3 +120,26 @@ flutter:
     - assets/images/login/
     - assets/images/backgrounds/
     - assets/env/
+
+flavorizr:
+  app:
+    android:
+      flavorDimensions: "app"
+    ios: {}
+
+  flavors:
+    dev:
+      app:
+        name: "School Connect Dev"
+      android:
+        applicationId: "com.student.connect.student_management.dev"
+      ios:
+        bundleId: "com.student.connect.studentManagement.dev"
+
+    prod:
+      app:
+        name: "School Connect"
+      android:
+        applicationId: "com.student.connect.student_management"
+      ios:
+        bundleId: "com.student.connect.studentManagement"

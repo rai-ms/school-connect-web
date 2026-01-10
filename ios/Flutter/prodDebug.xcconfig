@@ -1,0 +1,6 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
+#include "Generated.xcconfig"
+
+ASSET_PREFIX=prod
+BUNDLE_NAME=School Connect
+BUNDLE_DISPLAY_NAME=School Connect

@@ -91,6 +91,7 @@ _i174.GetIt injectAllData(
   gh.singleton<_i158.NoOpStorageStrategy>(
       () => const _i158.NoOpStorageStrategy());
   gh.singleton<_i49.PermissionService>(() => _i49.PermissionService());
+  gh.singleton<_i317.ApiService>(() => const _i317.ApiService());
   gh.singletonAsync<_i279.FlavourService>(() {
     final i = _i279.FlavourService();
     return i.init().then((_) => i);
@@ -118,8 +119,10 @@ _i174.GetIt injectAllData(
     () => _i413.MemoryStorageStrategy(),
     instanceName: 'memory_storage',
   );
-  gh.singletonAsync<_i317.ApiService>(
-      () async => _i317.ApiService(await gh.getAsync<_i279.FlavourService>()));
+  gh.lazySingleton<_i896.ApiDispatcher>(
+      () => _i896.ApiDispatcher(gh<_i317.ApiService>()));
+  gh.lazySingleton<_i265.ProfileRepo>(
+      () => _i245.ProfileRepoImpl(gh<_i896.ApiDispatcher>()));
   gh.singleton<_i708.AuthStorageRepository>(() => _i708.AuthStorageRepository(
       gh<_i738.StorageStrategy>(instanceName: 'secure_storage')));
   gh.singletonAsync<_i908.AppLanguageService>(() async =>
@@ -128,11 +131,13 @@ _i174.GetIt injectAllData(
   gh.singletonAsync<_i674.ThemeService>(() async =>
       _i674.ThemeService(await gh.getAsync<_i1048.StorageRepository>())
         ..init());
-  gh.lazySingletonAsync<_i896.ApiDispatcher>(
-      () async => _i896.ApiDispatcher(await gh.getAsync<_i317.ApiService>()));
-  gh.singletonAsync<_i75.SuperAdminDashboardRepo>(
-      () async => _i220.SuperAdminDashboardRepoImpl(
-            await gh.getAsync<_i896.ApiDispatcher>(),
+  gh.lazySingleton<_i677.LoginRepository>(
+      () => _i410.LoginRepositoryImpl(gh<_i896.ApiDispatcher>()));
+  gh.lazySingleton<_i1045.AppConfigRepo>(
+      () => _i1013.AppConfigRepoImpl(gh<_i896.ApiDispatcher>()));
+  gh.singleton<_i75.SuperAdminDashboardRepo>(
+      () => _i220.SuperAdminDashboardRepoImpl(
+            gh<_i896.ApiDispatcher>(),
             gh<_i708.AuthStorageRepository>(),
           ));
   gh.factoryAsync<_i1048.SplashBloc>(() async => _i1048.SplashBloc(
@@ -140,51 +145,42 @@ _i174.GetIt injectAllData(
         gh<_i708.AuthStorageRepository>(),
         await gh.getAsync<_i122.AppStorageRepository>(),
       ));
-  gh.lazySingletonAsync<_i820.AddSchoolRepository>(
-      () async => _i1063.AddSchoolRepositoryImpl(
-            await gh.getAsync<_i896.ApiDispatcher>(),
+  gh.lazySingleton<_i820.AddSchoolRepository>(
+      () => _i1063.AddSchoolRepositoryImpl(
+            gh<_i896.ApiDispatcher>(),
             gh<_i708.AuthStorageRepository>(),
           ));
-  gh.lazySingletonAsync<_i265.ProfileRepo>(() async =>
-      _i245.ProfileRepoImpl(await gh.getAsync<_i896.ApiDispatcher>()));
-  gh.singletonAsync<_i210.AddSchool>(() async =>
-      _i210.AddSchool(await gh.getAsync<_i820.AddSchoolRepository>()));
-  gh.lazySingletonAsync<_i677.LoginRepository>(() async =>
-      _i410.LoginRepositoryImpl(await gh.getAsync<_i896.ApiDispatcher>()));
-  gh.lazySingletonAsync<_i1045.AppConfigRepo>(() async =>
-      _i1013.AppConfigRepoImpl(await gh.getAsync<_i896.ApiDispatcher>()));
-  gh.factoryAsync<_i542.AddSchoolBloc>(() async => _i542.AddSchoolBloc(
-        await gh.getAsync<_i210.AddSchool>(),
-        gh<_i140.StateRequestHandler>(),
-      ));
-  gh.singletonAsync<_i106.FetchSuperAdminDashboard>(() async =>
-      _i106.FetchSuperAdminDashboard(
-          await gh.getAsync<_i75.SuperAdminDashboardRepo>()));
-  gh.lazySingletonAsync<_i813.ProfileFetchUseCase>(
-    () async =>
-        _i813.ProfileFetchUseCase(await gh.getAsync<_i265.ProfileRepo>()),
+  gh.lazySingleton<_i813.ProfileFetchUseCase>(
+    () => _i813.ProfileFetchUseCase(gh<_i265.ProfileRepo>()),
     registerFor: {_dev},
   );
-  gh.factoryAsync<_i914.LoginBloc>(() async => _i914.LoginBloc(
+  gh.factory<_i914.LoginBloc>(() => _i914.LoginBloc(
         gh<_i140.StateRequestHandler>(),
-        await gh.getAsync<_i677.LoginRepository>(),
+        gh<_i677.LoginRepository>(),
         gh<_i708.AuthStorageRepository>(),
       ));
-  gh.factoryAsync<_i292.ProfileManageBloc>(() async => _i292.ProfileManageBloc(
+  gh.factory<_i292.ProfileManageBloc>(() => _i292.ProfileManageBloc(
         gh<_i140.StateRequestHandler>(),
         gh<_i708.AuthStorageRepository>(),
-        await gh.getAsync<_i813.ProfileFetchUseCase>(),
+        gh<_i813.ProfileFetchUseCase>(),
       ));
-  gh.factoryAsync<_i394.SuperAdminDashboardBloc>(
-      () async => _i394.SuperAdminDashboardBloc(
-            gh<_i140.StateRequestHandler>(),
-            await gh.getAsync<_i106.FetchSuperAdminDashboard>(),
-          ));
-  gh.lazySingletonAsync<_i331.FetchAppConfigUseCase>(() async =>
-      _i331.FetchAppConfigUseCase(await gh.getAsync<_i1045.AppConfigRepo>()));
-  gh.factoryAsync<_i940.AppConfigBloc>(() async => _i940.AppConfigBloc(
-        await gh.getAsync<_i331.FetchAppConfigUseCase>(),
+  gh.singleton<_i210.AddSchool>(
+      () => _i210.AddSchool(gh<_i820.AddSchoolRepository>()));
+  gh.lazySingleton<_i331.FetchAppConfigUseCase>(
+      () => _i331.FetchAppConfigUseCase(gh<_i1045.AppConfigRepo>()));
+  gh.factory<_i542.AddSchoolBloc>(() => _i542.AddSchoolBloc(
+        gh<_i210.AddSchool>(),
         gh<_i140.StateRequestHandler>(),
+      ));
+  gh.singleton<_i106.FetchSuperAdminDashboard>(
+      () => _i106.FetchSuperAdminDashboard(gh<_i75.SuperAdminDashboardRepo>()));
+  gh.factory<_i940.AppConfigBloc>(() => _i940.AppConfigBloc(
+        gh<_i331.FetchAppConfigUseCase>(),
+        gh<_i140.StateRequestHandler>(),
+      ));
+  gh.factory<_i394.SuperAdminDashboardBloc>(() => _i394.SuperAdminDashboardBloc(
+        gh<_i140.StateRequestHandler>(),
+        gh<_i106.FetchSuperAdminDashboard>(),
       ));
   return getIt;
 }

@@ -3,7 +3,14 @@
     "allow": [
       "Bash(git init:*)",
       "Bash(git branch:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo create:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(flutter pub get:*)",
+      "Bash(cat:*)",
+      "Bash(dart run:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

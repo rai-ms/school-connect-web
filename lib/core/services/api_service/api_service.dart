@@ -9,19 +9,18 @@ import 'package:network_logger/network_logger.dart' show DioNetworkLogger;
 import 'package:student_management/core/base/base_client/base_client.dart';
 import 'package:student_management/core/base/base_client/base_interceptor.dart';
 import 'package:student_management/core/utils/config/app_config_impl.dart';
+import 'package:student_management/flavors.dart';
 
 import '../../base/base_service/base_service.dart';
 import '../../base/logger/app_logger_impl.dart';
-import '../flavour_service/flavour_service.dart';
 
 @singleton
 class ApiService extends BaseService<void, String?> with BaseClientDio {
-  final FlavourService _flavourService;
-  const ApiService(this._flavourService);
+  const ApiService();
 
   @override
   BaseOptions get baseOptions => BaseOptions(
-    baseUrl: _flavourService.flavour.baseUrl,
+    baseUrl: F.baseUrl,
     connectTimeout: const Duration(minutes: 5),
     receiveTimeout: const Duration(minutes: 5),
   );
@@ -53,6 +52,6 @@ class ApiService extends BaseService<void, String?> with BaseClientDio {
 
   @override
   void init({String? param}) {
-    Log.d("Initializing ApiService");
+    Log.d("Initializing ApiService with baseUrl: ${F.baseUrl}");
   }
 }

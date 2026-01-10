@@ -179,28 +179,28 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
                           style: AppStyles.medium.bold.white,
                         ),
                         const SizedBox(height: 8),
-                          RadioGroup<String>(
-                            groupValue: _selectedSeverity,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedSeverity = value!;
-                              });
-                            },
-                            child: Column(
-                              children: _severityLevels
-                                  .map(
-                                    (severity) => RadioListTile<String>(
-                                      title: Text(
-                                        severity,
-                                        style: AppStyles.medium.regular.white,
-                                      ),
-                                      value: severity,
-                                      activeColor: Colors.white,
+                        RadioGroup<String>(
+                          groupValue: _selectedSeverity,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedSeverity = value!;
+                            });
+                          },
+                          child: Column(
+                            children: _severityLevels
+                                .map(
+                                  (severity) => RadioListTile<String>(
+                                    title: Text(
+                                      severity,
+                                      style: AppStyles.medium.regular.white,
                                     ),
-                                  )
-                                  .toList(),
-                            ),
+                                    value: severity,
+                                    activeColor: Colors.white,
+                                  ),
+                                )
+                                .toList(),
                           ),
+                        ),
                         const SizedBox(height: 16),
 
                         // File Attachments

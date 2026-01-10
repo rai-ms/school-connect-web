@@ -24,13 +24,16 @@ import 'package:student_management/core/utils/size_utils.dart'
     show SizeUtils, figmaDesignHeight, figmaDesignWidth;
 import 'package:student_management/presentation/my_app/presentation/init/my_app.dart'
     show MyApp;
+import 'package:student_management/flavors.dart';
 
 import 'core/base/logger/app_logger_impl.dart';
 import 'core/utils/app_providers.dart';
 
-// Main entry point of the application
-// This function sets up global error handling and initializes the app
+// Main entry point of the application (legacy - defaults to dev)
+// Use main_dev.dart or main_prod.dart for flavor-specific builds
 void main() {
+  // Default to dev flavor for backward compatibility
+  F.appFlavor = Flavor.dev;
   // Set up error handling for the entire app
   runZonedGuarded<Future<void>>(
     () async {
