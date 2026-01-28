@@ -11,8 +11,8 @@ mixin _SplashMixin<T extends StatefulWidget> on State<T> {
 
   Future _getToken() async {
     try {
-      var token = await NotificationService.getFcmToken();
-      Log.d("FCM-Token is $token");
+      // FCM token is now managed by NotificationService via DI
+      Log.d("FCM-Token is null");
     } catch (e) {
       Log.e("Error getting the fcm token $e");
     }

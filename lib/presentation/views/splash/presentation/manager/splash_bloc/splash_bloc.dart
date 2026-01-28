@@ -13,7 +13,7 @@ import '../../../../../../core/services/storage_service/storage_repo/auth_storag
 part 'splash_event.dart';
 part 'splash_state.dart';
 
-@injectable
+@Singleton()
 class SplashBloc extends Bloc<SplashEvent, SplashState> {
   final StateRequestHandler _stateRequestHandler;
   final AuthStorageRepository _authStorageRepo;

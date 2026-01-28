@@ -54,8 +54,9 @@ enum FlavourType {
     try {
       var fl = FlavourType.values.firstWhere(
         (FlavourType element) => element._flavour == val,
+        orElse: () => FlavourType.dev,
       );
-      Log.f("FlavourType is $fl");
+      Log.d("FlavourType is ${fl._flavour}");
       return fl;
     } catch (e) {
       Log.e("Error while getting flavour type $e");

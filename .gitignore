@@ -45,3 +45,7 @@ app.*.map.json
 /android/app/release
 /android/app/src/prod/google-services.json
 /ios/config/prod/GoogleService-Info.plist
+
+# Environment files (contains secrets)
+assets/env/.env*
+lib/env/*.g.dart

@@ -153,7 +153,7 @@ class FirebaseAnalyticsService extends BaseService{
   }
 
   @override
-  void init({required param}) {
+  void init({dynamic param}) {
     Log.d("Firebase Analytics Initialized");
   }
 }

@@ -78,5 +78,22 @@
     <array>
       <string>group.$(PRODUCT_BUNDLE_IDENTIFIER).awesome-notifications</string>
     </array>
+    <!-- Deep Links: Custom URL Scheme -->
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLName</key>
+        <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>schoolconnect</string>
+        </array>
+      </dict>
+    </array>
+    <!-- Disable Flutter's built-in deep link handler (app_links handles it) -->
+    <key>FlutterDeepLinkingEnabled</key>
+    <false/>
   </dict>
 </plist>

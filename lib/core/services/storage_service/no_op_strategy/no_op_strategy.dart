@@ -19,8 +19,5 @@ class NoOpStorageStrategy implements StorageStrategy {
   Future<void> clear() async {}
 
   @override
-  T? readSync<T>(String key) {
-    // TODO: implement readSync
-    throw UnimplementedError();
-  }
+  T? readSync<T>(String key) => null;
 }

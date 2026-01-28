@@ -24,14 +24,10 @@ mixin _LoginControllerMixin<T extends StatefulWidget> on State<T> {
     if (userId?.trim().isNotEmpty ?? false) {
       Log.d("Found user id is $userId");
       _userNameController.text = userId ?? "";
-    } else {
-      _userNameController.text = "superadmin@system.com";
     }
 
     if (pass?.trim().isNotEmpty ?? false) {
       _passwordController.text = pass ?? "";
-    } else {
-      _passwordController.text = "Admin@123";
     }
   }
 

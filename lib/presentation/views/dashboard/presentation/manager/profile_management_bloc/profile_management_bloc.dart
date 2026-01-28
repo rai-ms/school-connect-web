@@ -47,6 +47,7 @@ class ProfileManageBloc extends Bloc<ProfileManageEvent, ProfileManageState> {
         String? userId = _storageService.userId();
         if ((token?.isEmpty ?? true) || (userId?.isEmpty ?? true)) {
           emit(state.copyWith(isTokenNotFound: true, state: state.failed));
+          return; // Early return when no token is found
         }
         var decodedData = JwtUtils.decode(token!);
         Log.d("Decoded JWT data: $decodedData");

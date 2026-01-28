@@ -1,10 +1,22 @@
+import 'env/app_environment.dart';
+
 enum Flavor {
   dev,
   prod,
 }
 
 class F {
-  static late final Flavor appFlavor;
+  F._();
+
+  /// Get flavor from compile-time environment variable
+  static Flavor get appFlavor {
+    switch (EnvironmentConfig.environment) {
+      case AppEnvironment.dev:
+        return Flavor.dev;
+      case AppEnvironment.prod:
+        return Flavor.prod;
+    }
+  }
 
   static String get name => appFlavor.name;
 
@@ -17,14 +29,8 @@ class F {
     }
   }
 
-  static String get baseUrl {
-    switch (appFlavor) {
-      case Flavor.dev:
-        return 'https://thing-participating-gateway-backed.trycloudflare.com/';
-      case Flavor.prod:
-        return 'https://thing-participating-gateway-backed.trycloudflare.com/';
-    }
-  }
+  /// Get base URL from envied generated files
+  static String get baseUrl => EnvironmentConfig.baseUrl;
 
   static bool get isDev => appFlavor == Flavor.dev;
   static bool get isProd => appFlavor == Flavor.prod;

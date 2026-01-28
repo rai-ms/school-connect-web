@@ -68,14 +68,20 @@ dependencies:
   permission_handler: ^12.0.1
   rename_app: ^1.6.5
   provider: ^6.1.2
+  envied: ^0.5.4+1
 
   # Notifications
   awesome_notifications: ^0.10.1
+  flutter_local_notifications: ^19.2.0
+
+  # Deep Links
+  app_links: ^6.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner:
+  envied_generator: ^0.5.4+1
   hive_generator:
   injectable_generator:
   flutter_launcher_icons: ^0.13.1

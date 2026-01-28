@@ -8,7 +8,6 @@ import 'package:student_management/core/services/route_service/route_names.dart'
 import 'package:student_management/core/utils/toast.dart';
 import 'package:student_management/presentation/my_app/presentation/manager/bloc/app_config_bloc/app_config_bloc.dart';
 import 'package:student_management/presentation/views/splash/presentation/manager/splash_bloc/splash_bloc.dart';
-import '../../../../../../core/services/notification/notification_service.dart';
 import '../../../../../../generated/generated_images.dart';
 part '../ui/splash_widget_view.dart';
 part 'splash_mixin.dart';

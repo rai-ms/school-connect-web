@@ -59,28 +59,32 @@ import '../../handler/api_request_handler.dart' as _i564;
 import '../../handler/state_request_handler.dart' as _i140;
 import '../api_service/api_dispatcher.dart' as _i896;
 import '../api_service/api_service.dart' as _i317;
+import '../deep_link_service/deep_link_service.dart' as _i274;
 import '../flavour_service/flavour_service.dart' as _i279;
 import '../language_service/language_service.dart' as _i908;
+import '../notification/notification_service.dart' as _i85;
 import '../permissin_service/permission_service.dart' as _i49;
 import '../storage_service/hive_storage/hive_strategy.dart' as _i1039;
 import '../storage_service/memory_strategy/memory_strategy.dart' as _i413;
 import '../storage_service/no_op_strategy/no_op_strategy.dart' as _i158;
 import '../storage_service/secure_storage/secure_storage_strategy.dart'
     as _i213;
+import '../storage_service/secure_storage_service.dart' as _i643;
 import '../storage_service/storage_contract/storage_contract.dart' as _i738;
 import '../storage_service/storage_repo/app_storage_repo.dart' as _i122;
 import '../storage_service/storage_repo/auth_storage_repo.dart' as _i708;
 import '../storage_service/storage_repository.dart' as _i1048;
 import '../theme_service/theme_service.dart' as _i674;
+import '../token_service/token_manager.dart' as _i52;
 
 const String _dev = 'dev';
 
 // initializes the registration of main-scope dependencies inside of GetIt
-_i174.GetIt injectAllData(
+Future<_i174.GetIt> injectAllData(
   _i174.GetIt getIt, {
   String? environment,
   _i526.EnvironmentFilter? environmentFilter,
-}) {
+}) async {
   final gh = _i526.GetItHelper(
     getIt,
     environment,
@@ -96,7 +100,9 @@ _i174.GetIt injectAllData(
     final i = _i279.FlavourService();
     return i.init().then((_) => i);
   });
-  gh.singleton<_i822.SecureStorageUseCase>(() => _i822.SecureStorageUseCase());
+  gh.lazySingleton<_i274.DeepLinkService>(() => _i274.DeepLinkService());
+  gh.lazySingleton<_i643.SecureStorageService>(
+      () => _i643.SecureStorageService());
   gh.lazySingleton<_i822.AddUseCases>(() => _i822.AddUseCases());
   gh.singletonAsync<_i738.StorageStrategy>(
     () {
@@ -108,9 +114,13 @@ _i174.GetIt injectAllData(
   gh.singletonAsync<_i122.AppStorageRepository>(() async =>
       _i122.AppStorageRepository(await gh.getAsync<_i738.StorageStrategy>(
           instanceName: 'hive_storage')));
-  gh.singleton<_i738.StorageStrategy>(
-    () => const _i213.SecureStorageStrategy(),
+  await gh.singletonAsync<_i738.StorageStrategy>(
+    () {
+      final i = _i213.SecureStorageStrategy();
+      return i.init().then((_) => i);
+    },
     instanceName: 'secure_storage',
+    preResolve: true,
   );
   gh.lazySingletonAsync<_i1048.StorageRepository>(() async =>
       _i1048.StorageRepository(await gh.getAsync<_i738.StorageStrategy>(
@@ -121,9 +131,15 @@ _i174.GetIt injectAllData(
   );
   gh.lazySingleton<_i896.ApiDispatcher>(
       () => _i896.ApiDispatcher(gh<_i317.ApiService>()));
+  gh.lazySingleton<_i52.TokenManager>(
+      () => _i52.TokenManager(gh<_i643.SecureStorageService>()));
+  gh.lazySingleton<_i85.NotificationService>(
+      () => _i85.NotificationService(gh<_i274.DeepLinkService>()));
   gh.lazySingleton<_i265.ProfileRepo>(
       () => _i245.ProfileRepoImpl(gh<_i896.ApiDispatcher>()));
   gh.singleton<_i708.AuthStorageRepository>(() => _i708.AuthStorageRepository(
+      gh<_i738.StorageStrategy>(instanceName: 'secure_storage')));
+  gh.singleton<_i822.SecureStorageUseCase>(() => _i822.SecureStorageUseCase(
       gh<_i738.StorageStrategy>(instanceName: 'secure_storage')));
   gh.singletonAsync<_i908.AppLanguageService>(() async =>
       _i908.AppLanguageService(await gh.getAsync<_i122.AppStorageRepository>())
@@ -140,7 +156,7 @@ _i174.GetIt injectAllData(
             gh<_i896.ApiDispatcher>(),
             gh<_i708.AuthStorageRepository>(),
           ));
-  gh.factoryAsync<_i1048.SplashBloc>(() async => _i1048.SplashBloc(
+  gh.singletonAsync<_i1048.SplashBloc>(() async => _i1048.SplashBloc(
         gh<_i140.StateRequestHandler>(),
         gh<_i708.AuthStorageRepository>(),
         await gh.getAsync<_i122.AppStorageRepository>(),

@@ -1,19 +1,18 @@
 import 'package:injectable/injectable.dart';
 import 'package:student_management/core/base/base_use_case/use_case.dart';
-import 'package:student_management/core/services/storage_service/secure_storage/secure_storage_strategy.dart';
-import 'package:student_management/core/services/storage_service/storage_repository.dart';
 
 import '../../../../core/services/storage_service/storage_contract/storage_contract.dart';
 
 @singleton
 class SecureStorageUseCase extends AsyncUseCase<StorageStrategy?, String> {
-  final StorageRepository repository;
+  final StorageStrategy _storageStrategy;
 
-  SecureStorageUseCase()
-    : repository = const StorageRepository(SecureStorageStrategy());
+  SecureStorageUseCase(
+    @Named('secure_storage') this._storageStrategy,
+  );
 
   @override
   StorageStrategy call({required String params}) {
-    return repository.strategy;
+    return _storageStrategy;
   }
 }

@@ -44,11 +44,23 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           rememberMe: event.rememberMe,
         );
         final result = await _loginRepository.login(payload: req);
-        Log.d("Login result: ${result.data}");
+
+        // Check if API returned an error
+        if (result.data['status'] == 'ERROR') {
+          final errorMessage = result.data['message'] ?? 'Login failed';
+          throw Exception(errorMessage);
+        }
+
         LoginResponse response = LoginResponse.fromJson(result.data);
+
+        // Validate tokens before saving
+        if (response.accessToken == null || response.accessToken!.isEmpty) {
+          throw Exception('No access token received from server');
+        }
+
         await Future.wait([
           _storageService.userIdRemember.write(req.username),
-          _storageService.userPasswordRemember.write(req.username),
+          _storageService.userPasswordRemember.write(req.password),
           _storageService.accessToken.write(response.accessToken ?? ""),
           _storageService.refreshToken.write(response.refreshToken ?? ""),
           _storageService.userId.write(response.user?.id ?? ""),

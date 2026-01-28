@@ -30,7 +30,6 @@ class MemoryStorageStrategy implements StorageStrategy {
 
   @override
   T? readSync<T>(String key) {
-    // TODO: implement readSync
-    throw UnimplementedError();
+    return _map[key] as T?;
   }
 }
