@@ -11,9 +11,10 @@ import 'package:student_management/core/services/storage_service/storage_contrac
 import 'package:student_management/core/services/storage_service/storage_repo/auth_storage_repo.dart';
 import 'package:student_management/presentation/views/dashboard/domain/entities/user_role.dart';
 import 'package:student_management/presentation/views/dashboard/domain/use_cases/profile_fetch_use_case.dart';
+import 'package:student_management/presentation/views/dashboard/domain/use_cases/profile_update_use_case.dart';
 import 'package:student_management/presentation/views/dashboard/presentation/manager/profile_management_bloc/profile_management_bloc.dart';
 
-@GenerateMocks([ProfileFetchUseCase, StorageStrategy])
+@GenerateMocks([ProfileFetchUseCase, ProfileUpdateUseCase, StorageStrategy])
 import 'profile_management_bloc_test.mocks.dart';
 
 /// Helper to build a test JWT token from a payload map.
@@ -33,6 +34,7 @@ void main() {
   late MockStorageStrategy mockStorageStrategy;
   late AuthStorageRepository authStorageRepository;
   late MockProfileFetchUseCase mockProfileFetchUseCase;
+  late MockProfileUpdateUseCase mockProfileUpdateUseCase;
   late StateRequestHandler handler;
 
   final testProfileJson = <String, dynamic>{
@@ -67,6 +69,7 @@ void main() {
     mockStorageStrategy = MockStorageStrategy();
     authStorageRepository = AuthStorageRepository(mockStorageStrategy);
     mockProfileFetchUseCase = MockProfileFetchUseCase();
+    mockProfileUpdateUseCase = MockProfileUpdateUseCase();
     handler = StateRequestHandler();
 
     // Default stubs for storage operations
@@ -79,6 +82,7 @@ void main() {
       handler,
       authStorageRepository,
       mockProfileFetchUseCase,
+      mockProfileUpdateUseCase,
     );
   });
 

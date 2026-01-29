@@ -8,11 +8,13 @@ import 'package:student_management/core/services/storage_service/storage_repo/au
 import 'package:student_management/core/utils/app_type_def.dart' show FVoid;
 import 'package:student_management/core/utils/jwt/jwt_util.dart';
 import 'package:student_management/presentation/views/dashboard/data/models/req/profile_fetch_req.dart';
+import 'package:student_management/presentation/views/dashboard/data/models/req/profile_update_req.dart';
 import 'package:student_management/presentation/views/dashboard/domain/entities/token_data.dart';
 import 'package:student_management/presentation/views/dashboard/domain/entities/user_role.dart';
 
 import '../../../data/models/res/profile_response.dart';
 import '../../../domain/use_cases/profile_fetch_use_case.dart';
+import '../../../domain/use_cases/profile_update_use_case.dart';
 
 part 'profile_management_event.dart';
 part 'profile_management_state.dart';
@@ -22,11 +24,13 @@ class ProfileManageBloc extends Bloc<ProfileManageEvent, ProfileManageState> {
   final StateRequestHandler _stateRequestHandler;
   final AuthStorageRepository _storageService;
   final ProfileFetchUseCase _profileFetchUseCase;
+  final ProfileUpdateUseCase _profileUpdateUseCase;
 
   ProfileManageBloc(
     this._stateRequestHandler,
     this._storageService,
     this._profileFetchUseCase,
+    this._profileUpdateUseCase,
   ) : super(const ProfileManageState()) {
     on<LoadUserProfile>(_onLoadUserProfile);
     on<UpdateUserProfile>(_onUpdateUserProfile);
@@ -34,6 +38,7 @@ class ProfileManageBloc extends Bloc<ProfileManageEvent, ProfileManageState> {
     on<ClearProfileData>(_onClearProfileData);
     on<CheckFeatureAccess>(_onCheckFeatureAccess);
     on<LogOutEvent>(_logout);
+    on<UpdateProfileDetails>(_onUpdateProfileDetails);
   }
 
   FVoid _onLoadUserProfile(
@@ -152,6 +157,67 @@ class ProfileManageBloc extends Bloc<ProfileManageEvent, ProfileManageState> {
       error: (error) {
         Log.e("Logout error: ${error.toString()}");
         emit(state.copyWith(state: state.failed, error: error.toString()));
+      },
+    );
+  }
+
+  FVoid _onUpdateProfileDetails(
+    UpdateProfileDetails event,
+    Emitter<ProfileManageState> emit,
+  ) async {
+    await _stateRequestHandler(
+      apiCall: () async {
+        emit(state.copyWith(state: state.loading, event: event));
+        String? token = _storageService.accessToken();
+        String? userId = _storageService.userId();
+        if ((token?.isEmpty ?? true) || (userId?.isEmpty ?? true)) {
+          emit(state.copyWith(
+            state: state.failed,
+            error: 'Authentication token not found',
+            profileUpdateMessage: null,
+          ));
+          return;
+        }
+        var res = await _profileUpdateUseCase(
+          params: ProfileUpdateRequest(
+            userId: userId!,
+            token: token!,
+            firstName: event.payload['firstName'],
+            lastName: event.payload['lastName'],
+            phone: event.payload['phone'],
+            avatarUrl: event.payload['avatarUrl'],
+          ),
+        );
+        Log.d("Profile updated successfully: ${res.data}");
+        ProfileResponse updatedProfile = ProfileResponse.fromJson(res.data);
+        emit(
+          state.copyWith(
+            state: state.success,
+            event: event,
+            profile: updatedProfile,
+            profileUpdateMessage: 'Profile updated successfully',
+          ),
+        );
+      },
+      dioError: (dioError) {
+        Log.e("DIOError updating profile: ${dioError.toString()}");
+        emit(
+          state.copyWith(
+            state: state.failed,
+            event: event,
+            error: dioError.message ?? 'Failed to update profile',
+            profileUpdateMessage: null,
+          ),
+        );
+      },
+      error: (error) {
+        Log.e("Error updating profile: ${error.toString()}");
+        emit(state.copyWith(
+          state: state.failed,
+          event: event,
+          error: error.toString(),
+          profileUpdateMessage: null,
+        ));
       },
     );
   }

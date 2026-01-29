@@ -45,6 +45,8 @@ import '../../../presentation/views/dashboard/domain/repositories/super_admin/su
     as _i75;
 import '../../../presentation/views/dashboard/domain/use_cases/profile_fetch_use_case.dart'
     as _i813;
+import '../../../presentation/views/dashboard/domain/use_cases/profile_update_use_case.dart'
+    as _i39;
 import '../../../presentation/views/dashboard/domain/use_cases/super_admin/add_school.dart'
     as _i210;
 import '../../../presentation/views/dashboard/domain/use_cases/super_admin/fetch_super_admin_dashboard.dart'
@@ -79,8 +81,13 @@ import '../../../presentation/views/notification/data/repositories/notification_
     as _i124;
 import '../../../presentation/views/notification/presentation/manager/notification_bloc/notification_bloc.dart'
     as _i31;
+import '../../../presentation/views/parent/data/repositories/parent_repository.dart'
+    as _i317;
+import '../../../presentation/views/parent/presentation/manager/parent_bloc/parent_bloc.dart'
+    as _i737;
 import '../../../presentation/views/safety/data/repositories/safety_repository.dart'
     as _i40;
+import '../../../presentation/views/settings/bloc/settings_bloc.dart' as _i984;
 import '../../../presentation/views/splash/domain/use_cases/add_use_case.dart'
     as _i822;
 import '../../../presentation/views/splash/presentation/manager/splash_bloc/splash_bloc.dart'
@@ -89,6 +96,10 @@ import '../../../presentation/views/student/data/repositories/student_repository
     as _i635;
 import '../../../presentation/views/student/presentation/manager/student_bloc/student_bloc.dart'
     as _i867;
+import '../../../presentation/views/subject/data/repositories/subject_repository.dart'
+    as _i958;
+import '../../../presentation/views/subject/presentation/manager/subject_bloc/subject_bloc.dart'
+    as _i603;
 import '../../../presentation/views/teacher/data/repositories/teacher_repository.dart'
     as _i893;
 import '../../../presentation/views/teacher/presentation/manager/teacher_bloc/teacher_bloc.dart'
@@ -209,6 +220,10 @@ Future<_i174.GetIt> injectAllData(
         gh<_i499.AttendanceRepository>(),
         gh<_i140.StateRequestHandler>(),
       ));
+  gh.factoryAsync<_i984.SettingsBloc>(() async => _i984.SettingsBloc(
+        await gh.getAsync<_i122.AppStorageRepository>(),
+        await gh.getAsync<_i674.ThemeService>(),
+      ));
   gh.factory<_i830.ClassBloc>(() => _i830.ClassBloc(
         gh<_i375.ClassRepository>(),
         gh<_i140.StateRequestHandler>(),
@@ -217,12 +232,20 @@ Future<_i174.GetIt> injectAllData(
       () => _i0.ExamRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.lazySingleton<_i677.LoginRepository>(
       () => _i410.LoginRepositoryImpl(gh<_i896.ApiDispatcher>()));
+  gh.singleton<_i317.ParentRepository>(
+      () => _i317.ParentRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.singleton<_i635.StudentRepository>(
       () => _i635.StudentRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.singleton<_i378.FeeRepository>(
       () => _i378.FeeRepositoryImpl(gh<_i896.ApiDispatcher>()));
+  gh.singleton<_i958.SubjectRepository>(
+      () => _i958.SubjectRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.lazySingleton<_i1045.AppConfigRepo>(
       () => _i1013.AppConfigRepoImpl(gh<_i896.ApiDispatcher>()));
+  gh.factory<_i737.ParentBloc>(() => _i737.ParentBloc(
+        gh<_i317.ParentRepository>(),
+        gh<_i140.StateRequestHandler>(),
+      ));
   gh.singleton<_i422.SchoolAdminDashboardRepository>(() =>
       _i422.SchoolAdminDashboardRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.factory<_i31.NotificationBloc>(() => _i31.NotificationBloc(
@@ -256,15 +279,14 @@ Future<_i174.GetIt> injectAllData(
     () => _i813.ProfileFetchUseCase(gh<_i265.ProfileRepo>()),
     registerFor: {_dev},
   );
+  gh.lazySingleton<_i39.ProfileUpdateUseCase>(
+    () => _i39.ProfileUpdateUseCase(gh<_i265.ProfileRepo>()),
+    registerFor: {_dev},
+  );
   gh.factory<_i914.LoginBloc>(() => _i914.LoginBloc(
         gh<_i140.StateRequestHandler>(),
         gh<_i677.LoginRepository>(),
         gh<_i708.AuthStorageRepository>(),
-      ));
-  gh.factory<_i292.ProfileManageBloc>(() => _i292.ProfileManageBloc(
-        gh<_i140.StateRequestHandler>(),
-        gh<_i708.AuthStorageRepository>(),
-        gh<_i813.ProfileFetchUseCase>(),
       ));
   gh.factory<_i403.TeacherBloc>(() => _i403.TeacherBloc(
         gh<_i893.TeacherRepository>(),
@@ -289,6 +311,10 @@ Future<_i174.GetIt> injectAllData(
         gh<_i0.ExamRepository>(),
         gh<_i140.StateRequestHandler>(),
       ));
+  gh.factory<_i603.SubjectBloc>(() => _i603.SubjectBloc(
+        gh<_i958.SubjectRepository>(),
+        gh<_i140.StateRequestHandler>(),
+      ));
   gh.lazySingleton<_i331.FetchAppConfigUseCase>(
       () => _i331.FetchAppConfigUseCase(gh<_i1045.AppConfigRepo>()));
   gh.factory<_i542.AddSchoolBloc>(() => _i542.AddSchoolBloc(
@@ -297,6 +323,12 @@ Future<_i174.GetIt> injectAllData(
       ));
   gh.singleton<_i106.FetchSuperAdminDashboard>(
       () => _i106.FetchSuperAdminDashboard(gh<_i75.SuperAdminDashboardRepo>()));
+  gh.factory<_i292.ProfileManageBloc>(() => _i292.ProfileManageBloc(
+        gh<_i140.StateRequestHandler>(),
+        gh<_i708.AuthStorageRepository>(),
+        gh<_i813.ProfileFetchUseCase>(),
+        gh<_i39.ProfileUpdateUseCase>(),
+      ));
   gh.factory<_i940.AppConfigBloc>(() => _i940.AppConfigBloc(
         gh<_i331.FetchAppConfigUseCase>(),
         gh<_i140.StateRequestHandler>(),

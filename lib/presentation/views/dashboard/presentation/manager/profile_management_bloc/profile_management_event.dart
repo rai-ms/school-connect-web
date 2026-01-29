@@ -35,3 +35,9 @@ class CheckFeatureAccess extends ProfileManageEvent {
 class LogOutEvent extends ProfileManageEvent {
   const LogOutEvent();
 }
+
+class UpdateProfileDetails extends ProfileManageEvent {
+  final Map<String, dynamic> payload;
+
+  const UpdateProfileDetails(this.payload);
+}

@@ -8,7 +8,6 @@ import 'package:student_management/core/utils/app_style.dart'
 import 'package:student_management/core/utils/size_utils.dart';
 import 'package:student_management/presentation/views/dashboard/data/models/res/profile_response.dart';
 import 'package:student_management/presentation/views/dashboard/presentation/manager/profile_management_bloc/profile_management_bloc.dart';
-import 'package:student_management/presentation/widgets/customs/toast.dart';
 import 'package:student_management/presentation/widgets/gradient/glassy_background.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -251,7 +250,7 @@ class ProfilePage extends StatelessWidget {
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () {
-              context.snackBar(message: 'Coming soon');
+              context.push(RoutesName.editProfile);
             },
             icon: Icon(Icons.edit, color: AppColors.greenCyan.withValues(alpha: 0.8)),
             label: Text(

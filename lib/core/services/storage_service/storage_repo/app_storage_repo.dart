@@ -29,4 +29,12 @@ class AppStorageRepository {
     AppStorageKey.isIntroCompleted,
     _storageStrategy,
   );
+  late final StorageItem<String> pushNotifications = StorageItem(
+    AppStorageKey.pushNotifications,
+    _storageStrategy,
+  );
+  late final StorageItem<String> emailNotifications = StorageItem(
+    AppStorageKey.emailNotifications,
+    _storageStrategy,
+  );
 }

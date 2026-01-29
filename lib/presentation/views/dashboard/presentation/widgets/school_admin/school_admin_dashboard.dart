@@ -35,10 +35,22 @@ class _SchoolAdminDashboardState extends State<SchoolAdminDashboard> {
       'route': RoutesName.teacherList,
     },
     {
+      'icon': Icons.family_restroom,
+      'label': 'Parents',
+      'color': AppColors.safetyOrange,
+      'route': RoutesName.parentList,
+    },
+    {
       'icon': Icons.class_,
       'label': 'Classes',
       'color': AppColors.selectiveYellow,
       'route': RoutesName.classList,
+    },
+    {
+      'icon': Icons.menu_book,
+      'label': 'Subjects',
+      'color': AppColors.verdigris,
+      'route': RoutesName.subjectList,
     },
     {
       'icon': Icons.assessment,

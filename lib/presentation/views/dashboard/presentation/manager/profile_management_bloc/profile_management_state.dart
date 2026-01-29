@@ -5,6 +5,7 @@ class ProfileManageState extends BlocEventState<TokenData> {
   final UserRole? role;
   final ProfileResponse? profile;
   final bool isTokenNotFound;
+  final String? profileUpdateMessage;
 
   const ProfileManageState({
     super.state,
@@ -16,6 +17,7 @@ class ProfileManageState extends BlocEventState<TokenData> {
     this.isTokenNotFound = false,
     this.role,
     this.profile,
+    this.profileUpdateMessage,
   });
 
   @override
@@ -29,6 +31,7 @@ class ProfileManageState extends BlocEventState<TokenData> {
     bool? isTokenNotFound,
     UserRole? role,
     ProfileResponse? profile,
+    String? profileUpdateMessage,
   }) {
     return ProfileManageState(
       state: state ?? this.state,
@@ -39,7 +42,8 @@ class ProfileManageState extends BlocEventState<TokenData> {
       isTokenNotFound: isTokenNotFound ?? this.isTokenNotFound,
       isProfileLoaded: isProfileLoaded ?? data != null,
       role: role ?? this.role,
-      profile: profile ?? this.profile
+      profile: profile ?? this.profile,
+      profileUpdateMessage: profileUpdateMessage,
     );
   }
 

@@ -9,6 +9,7 @@ import 'package:student_management/presentation/views/dashboard/presentation/man
 import 'package:student_management/presentation/views/dashboard/presentation/widgets/super_admin/bloc/dashboard_bloc/super_admin_bloc.dart';
 import 'package:student_management/presentation/views/dashboard/presentation/widgets/school_admin/bloc/school_admin_dashboard_bloc/school_admin_dashboard_bloc.dart';
 import 'package:student_management/presentation/views/login/presentation/manager/login_bloc/login_bloc.dart';
+import 'package:student_management/presentation/views/settings/bloc/settings_bloc.dart';
 import 'package:student_management/presentation/views/splash/presentation/manager/splash_bloc/splash_bloc.dart';
 
 class BlocProviders {
@@ -39,6 +40,11 @@ class BlocProviders {
     BlocProvider<SchoolAdminDashboardBloc>(
       create: (BuildContext context) =>
           InjectorService.service.inject<SchoolAdminDashboardBloc>(),
+    ),
+    BlocProvider<SettingsBloc>(
+      create: (BuildContext context) =>
+          InjectorService.service.inject<SettingsBloc>()
+            ..add(const LoadSettings()),
     ),
   ];
 }

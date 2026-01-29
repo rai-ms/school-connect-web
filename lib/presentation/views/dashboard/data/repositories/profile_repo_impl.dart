@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:student_management/core/services/api_service/api_headers.dart';
 import 'package:student_management/presentation/views/dashboard/data/models/req/profile_fetch_req.dart';
+import 'package:student_management/presentation/views/dashboard/data/models/req/profile_update_req.dart';
 
 import '../../../../../core/services/api_service/api_dispatcher.dart';
 import '../../../../../core/utils/api_end_point.dart';
@@ -18,6 +19,16 @@ class ProfileRepoImpl extends ProfileRepo {
       type: RequestType.get,
       options: APIHeaders.bearerOnlyHeader(req.token),
       endPoint: ApiEndPoint.profile(req.userId),
+    );
+  }
+
+  @override
+  Future<Response> updateProfile(ProfileUpdateRequest req) async {
+    return await _dispatcher(
+      type: RequestType.put,
+      options: APIHeaders.bearerOnlyHeader(req.token),
+      body: req.toJson(),
+      endPoint: ApiEndPoint.updateProfile(req.userId),
     );
   }
 }

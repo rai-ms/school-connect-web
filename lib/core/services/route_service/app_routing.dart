@@ -43,6 +43,15 @@ import 'package:student_management/presentation/views/teacher/presentation/manag
 import 'package:student_management/presentation/views/teacher/presentation/pages/teacher_list_page.dart';
 import 'package:student_management/presentation/views/teacher/presentation/pages/teacher_detail_page.dart';
 import 'package:student_management/presentation/views/teacher/presentation/pages/add_teacher_page.dart';
+import 'package:student_management/presentation/views/parent/presentation/manager/parent_bloc/parent_bloc.dart';
+import 'package:student_management/presentation/views/parent/presentation/pages/parent_list_page.dart';
+import 'package:student_management/presentation/views/parent/presentation/pages/parent_detail_page.dart';
+import 'package:student_management/presentation/views/parent/presentation/pages/add_parent_page.dart';
+import 'package:student_management/presentation/views/subject/presentation/manager/subject_bloc/subject_bloc.dart';
+import 'package:student_management/presentation/views/subject/presentation/pages/subject_list_page.dart';
+import 'package:student_management/presentation/views/subject/presentation/pages/subject_detail_page.dart';
+import 'package:student_management/presentation/views/subject/presentation/pages/add_subject_page.dart';
+import 'package:student_management/presentation/views/subject/data/models/subject_model.dart';
 import 'package:student_management/presentation/views/class_mgmt/presentation/manager/class_bloc/class_bloc.dart';
 import 'package:student_management/presentation/views/class_mgmt/presentation/pages/class_list_page.dart';
 import 'package:student_management/presentation/views/class_mgmt/presentation/pages/class_detail_page.dart';
@@ -55,6 +64,7 @@ import 'package:student_management/presentation/views/reports/presentation/pages
 import 'package:student_management/presentation/views/login/presentation/pages/forgot_password_page.dart';
 import 'package:student_management/presentation/views/settings/change_password_page.dart';
 import 'package:student_management/presentation/views/profile/profile_page.dart';
+import 'package:student_management/presentation/views/profile/edit_profile_page.dart';
 import 'package:student_management/presentation/views/settings/app_settings_page.dart';
 import 'package:student_management/presentation/views/splash/presentation/pages/controller/splash_controller.dart'
     show SplashController;
@@ -428,6 +438,81 @@ class RouteService extends BaseService<void, void> {
         },
       ),
 
+      // Parent Management Routes
+      GoRoute(
+        path: RoutesName.parentList,
+        name: RoutesName.parentList,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: BlocProvider(
+            create: (ctx) => InjectorService.service.inject<ParentBloc>(),
+            child: const ParentListPage(),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RoutesName.addParent,
+        name: RoutesName.addParent,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: BlocProvider(
+            create: (ctx) => InjectorService.service.inject<ParentBloc>(),
+            child: const AddParentPage(),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RoutesName.parentDetail,
+        name: RoutesName.parentDetail,
+        pageBuilder: (context, state) {
+          final parentId = state.pathParameters['parentId']!;
+          return NoTransitionPage(
+            child: BlocProvider(
+              create: (ctx) =>
+                  InjectorService.service.inject<ParentBloc>(),
+              child: ParentDetailPage(parentId: parentId),
+            ),
+          );
+        },
+      ),
+
+      // Subject Management Routes
+      GoRoute(
+        path: RoutesName.subjectList,
+        name: RoutesName.subjectList,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: BlocProvider(
+            create: (ctx) => InjectorService.service.inject<SubjectBloc>(),
+            child: const SubjectListPage(),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RoutesName.addSubject,
+        name: RoutesName.addSubject,
+        pageBuilder: (context, state) {
+          final existingSubject = state.extra as SubjectResponse?;
+          return NoTransitionPage(
+            child: BlocProvider(
+              create: (ctx) => InjectorService.service.inject<SubjectBloc>(),
+              child: AddSubjectPage(existingSubject: existingSubject),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutesName.subjectDetail,
+        name: RoutesName.subjectDetail,
+        pageBuilder: (context, state) {
+          final subjectId = state.pathParameters['subjectId']!;
+          return NoTransitionPage(
+            child: BlocProvider(
+              create: (ctx) =>
+                  InjectorService.service.inject<SubjectBloc>(),
+              child: SubjectDetailPage(subjectId: subjectId),
+            ),
+          );
+        },
+      ),
+
       // Class Management Routes
       GoRoute(
         path: RoutesName.classList,
@@ -529,6 +614,13 @@ class RouteService extends BaseService<void, void> {
         name: RoutesName.profile,
         pageBuilder: (context, state) => const NoTransitionPage(
           child: ProfilePage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutesName.editProfile,
+        name: RoutesName.editProfile,
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: EditProfilePage(),
         ),
       ),
       GoRoute(

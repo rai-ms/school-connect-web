@@ -11,4 +11,6 @@ abstract class AppStorageKey {
   static const String defaultDashboardId = "user-defaultDashboardId";
   static const String onBoardingComplete = "onBoardingComplete";
   static const String isIntroCompleted = "isIntroCompleted";
+  static const String pushNotifications = "pushNotifications";
+  static const String emailNotifications = "emailNotifications";
 }

@@ -44,6 +44,16 @@ abstract class RoutesName {
   static const String teacherDetail = '/teachers/:teacherId';
   static const String addTeacher = '/teachers/add';
 
+  // Parent Management Routes
+  static const String parentList = '/parents';
+  static const String parentDetail = '/parents/:parentId';
+  static const String addParent = '/parents/add';
+
+  // Subject Management Routes
+  static const String subjectList = '/subjects';
+  static const String subjectDetail = '/subjects/:subjectId';
+  static const String addSubject = '/subjects/add';
+
   // Class Management Routes
   static const String classList = '/classes';
   static const String classDetail = '/classes/:classId';
@@ -68,5 +78,6 @@ abstract class RoutesName {
 
   // Profile & App Settings Routes
   static const String profile = '/profile';
+  static const String editProfile = '/edit-profile';
   static const String appSettings = '/app-settings';
 }
