@@ -7,6 +7,7 @@ import 'package:student_management/core/services/di/injector.dart';
 import 'package:student_management/presentation/my_app/presentation/manager/bloc/app_config_bloc/app_config_bloc.dart';
 import 'package:student_management/presentation/views/dashboard/presentation/manager/profile_management_bloc/profile_management_bloc.dart';
 import 'package:student_management/presentation/views/dashboard/presentation/widgets/super_admin/bloc/dashboard_bloc/super_admin_bloc.dart';
+import 'package:student_management/presentation/views/dashboard/presentation/widgets/school_admin/bloc/school_admin_dashboard_bloc/school_admin_dashboard_bloc.dart';
 import 'package:student_management/presentation/views/login/presentation/manager/login_bloc/login_bloc.dart';
 import 'package:student_management/presentation/views/splash/presentation/manager/splash_bloc/splash_bloc.dart';
 
@@ -34,6 +35,10 @@ class BlocProviders {
     BlocProvider<SuperAdminDashboardBloc>(
       create: (BuildContext context) =>
           InjectorService.service.inject<SuperAdminDashboardBloc>(),
+    ),
+    BlocProvider<SchoolAdminDashboardBloc>(
+      create: (BuildContext context) =>
+          InjectorService.service.inject<SchoolAdminDashboardBloc>(),
     ),
   ];
 }

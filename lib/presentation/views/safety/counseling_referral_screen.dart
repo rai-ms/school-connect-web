@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:student_management/core/base/logger/app_logger_impl.dart';
+import 'package:student_management/core/services/di/injector.dart';
+import 'package:student_management/presentation/widgets/customs/toast.dart';
 import 'package:student_management/presentation/widgets/gradient/glassy_background.dart';
 import '../../../core/utils/app_style.dart';
 import '../../../core/utils/app_colors.dart';
+import 'data/models/counseling_referral_model.dart';
+import 'data/repositories/safety_repository.dart';
 
 class CounselingReferralScreen extends StatefulWidget {
   const CounselingReferralScreen({super.key});
@@ -40,11 +45,9 @@ class _CounselingReferralScreenState extends State<CounselingReferralScreen> {
   void _submitReferral() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedStudent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a student'),
-          backgroundColor: Colors.red,
-        ),
+      context.snackBar(
+        message: 'Please select a student',
+        backgroundColor: Colors.red,
       );
       return;
     }
@@ -53,22 +56,43 @@ class _CounselingReferralScreenState extends State<CounselingReferralScreen> {
       _isSubmitting = true;
     });
 
-    // TODO: Implement API call to submit counseling referral
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Counseling referral submitted successfully'),
-          backgroundColor: Colors.green,
-        ),
+    try {
+      final repository = InjectorService.service.inject<SafetyRepository>();
+      final selectedStudentData = _students.firstWhere(
+        (s) => s['id'] == _selectedStudent,
       );
 
-      context.pop();
+      final request = CounselingReferralRequest(
+        studentId: _selectedStudent!,
+        studentName: selectedStudentData['name']!,
+        classInfo: selectedStudentData['grade'],
+        reason: _reasonController.text,
+        urgency: _selectedUrgency,
+      );
+
+      await repository.createCounselingReferral(request);
+
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        context.snackBar(
+          message: 'Counseling referral submitted successfully',
+          backgroundColor: Colors.green,
+        );
+        context.pop();
+      }
+    } catch (e) {
+      Log.e("Failed to submit counseling referral: $e");
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        context.snackBar(
+          message: 'Failed to submit referral. Please try again.',
+          backgroundColor: Colors.red,
+        );
+      }
     }
   }
 

@@ -18,4 +18,21 @@ class AppConfigRepoImpl extends AppConfigRepo {
       endPoint: ApiEndPoint.config,
     );
   }
+
+  @override
+  Future<Response> getTenantSettings() async {
+    return await _dispatcher(
+      type: RequestType.get,
+      endPoint: ApiEndPoint.tenantSettings,
+    );
+  }
+
+  @override
+  Future<Response> updateTenantSettings(Map<String, dynamic> settings) async {
+    return await _dispatcher(
+      type: RequestType.put,
+      endPoint: ApiEndPoint.tenantSettings,
+      body: settings,
+    );
+  }
 }

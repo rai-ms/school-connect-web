@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:student_management/core/base/logger/app_logger_impl.dart';
+import 'package:student_management/core/services/di/injector.dart';
 import 'package:student_management/presentation/widgets/customs/toast.dart';
 import 'package:student_management/presentation/widgets/gradient/glassy_background.dart';
 import '../../../core/utils/app_style.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../widgets/customs/app_text_field.dart';
 import '../../widgets/customs/silver_validation/silver_validation.dart';
+import 'data/models/incident_report_model.dart';
+import 'data/repositories/safety_repository.dart';
 
 class IncidentReportScreen extends StatefulWidget {
   const IncidentReportScreen({super.key});
@@ -65,21 +69,44 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
   }
 
   void _submitReport() async {
-    // Validation is handled by ValidatedBuilder
-
     setState(() {
       _isSubmitting = true;
     });
 
-    // TODO: Implement API call to submit incident report
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final repository = InjectorService.service.inject<SafetyRepository>();
+      final request = IncidentReportRequest(
+        title: _titleController.text,
+        description: _descriptionController.text,
+        category: _selectedCategory,
+        severity: _selectedSeverity,
+        occurredAt: DateTime.now(),
+        attachments: _attachments.isNotEmpty ? _attachments : null,
+      );
 
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-      });
-      context.snackBar(message: "Incident report submitted successfully", backgroundColor: AppColors.safetyOrange);
-      context.pop();
+      await repository.createIncidentReport(request);
+
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        context.snackBar(
+          message: "Incident report submitted successfully",
+          backgroundColor: AppColors.safetyOrange,
+        );
+        context.pop();
+      }
+    } catch (e) {
+      Log.e("Failed to submit incident report: $e");
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        context.snackBar(
+          message: "Failed to submit report. Please try again.",
+          backgroundColor: Colors.red,
+        );
+      }
     }
   }
 

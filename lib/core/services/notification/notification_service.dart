@@ -2,14 +2,17 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:injectable/injectable.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../base/base_service/base_service.dart';
 import '../../base/logger/app_logger_impl.dart';
 import '../../constants/app_constants.dart';
+import '../api_service/api_dispatcher.dart';
 import '../deep_link_service/deep_link_service.dart';
 
 /// Background message handler - must be top-level function
@@ -25,8 +28,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 @lazySingleton
 class NotificationService extends BaseService<Future<void>, void> {
   final DeepLinkService _deepLinkService;
+  final ApiDispatcher _apiDispatcher;
 
-  NotificationService(this._deepLinkService);
+  NotificationService(this._deepLinkService, this._apiDispatcher);
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
@@ -40,6 +44,7 @@ class NotificationService extends BaseService<Future<void>, void> {
       _notificationStreamController.stream;
 
   String? _fcmToken;
+  bool _tokenSentToServer = false;
 
   /// Get FCM token
   String? get fcmToken => _fcmToken;
@@ -236,14 +241,96 @@ class NotificationService extends BaseService<Future<void>, void> {
       _fcmToken = await _firebaseMessaging.getToken();
       Log.d('FCM Token: $_fcmToken');
 
+      // Send token to server
+      if (_fcmToken != null) {
+        await _sendTokenToServer(_fcmToken!);
+      }
+
       // Listen for token refresh
-      _firebaseMessaging.onTokenRefresh.listen((token) {
+      _firebaseMessaging.onTokenRefresh.listen((token) async {
         _fcmToken = token;
         Log.d('FCM Token refreshed: $token');
-        // TODO: Send new token to server
+        _tokenSentToServer = false;
+        await _sendTokenToServer(token);
       });
     } catch (e) {
       Log.e('Failed to get FCM token', error: e);
+    }
+  }
+
+  /// Send FCM token to backend server
+  Future<void> _sendTokenToServer(String token) async {
+    if (_tokenSentToServer) return;
+
+    try {
+      final deviceInfo = await _getDeviceInfo();
+      final packageInfo = await PackageInfo.fromPlatform();
+
+      final body = {
+        'token': token,
+        'deviceType': Platform.isIOS ? 'IOS' : 'ANDROID',
+        'deviceId': deviceInfo['deviceId'],
+        'deviceName': deviceInfo['deviceName'],
+        'appVersion': packageInfo.version,
+      };
+
+      await _apiDispatcher.call(
+        type: RequestType.post,
+        endPoint: 'api/notifications/token',
+        body: body,
+      );
+
+      _tokenSentToServer = true;
+      Log.d('FCM token sent to server successfully');
+    } catch (e) {
+      Log.e('Failed to send FCM token to server', error: e);
+    }
+  }
+
+  /// Get device information
+  Future<Map<String, String>> _getDeviceInfo() async {
+    final deviceInfoPlugin = DeviceInfoPlugin();
+    String deviceId = '';
+    String deviceName = '';
+
+    if (Platform.isIOS) {
+      final iosInfo = await deviceInfoPlugin.iosInfo;
+      deviceId = iosInfo.identifierForVendor ?? '';
+      deviceName = '${iosInfo.name} (${iosInfo.model})';
+    } else if (Platform.isAndroid) {
+      final androidInfo = await deviceInfoPlugin.androidInfo;
+      deviceId = androidInfo.id;
+      deviceName = '${androidInfo.brand} ${androidInfo.model}';
+    }
+
+    return {
+      'deviceId': deviceId,
+      'deviceName': deviceName,
+    };
+  }
+
+  /// Resend token to server (useful after login)
+  Future<void> resendTokenToServer() async {
+    _tokenSentToServer = false;
+    if (_fcmToken != null) {
+      await _sendTokenToServer(_fcmToken!);
+    }
+  }
+
+  /// Remove token from server (useful on logout)
+  Future<void> removeTokenFromServer() async {
+    if (_fcmToken == null) return;
+
+    try {
+      await _apiDispatcher.call(
+        type: RequestType.delete,
+        endPoint: 'api/notifications/token',
+        queryParam: {'token': _fcmToken},
+      );
+      _tokenSentToServer = false;
+      Log.d('FCM token removed from server');
+    } catch (e) {
+      Log.e('Failed to remove FCM token from server', error: e);
     }
   }
 

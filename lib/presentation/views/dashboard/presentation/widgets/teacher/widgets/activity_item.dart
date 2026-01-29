@@ -21,7 +21,7 @@ class ActivityItem extends StatelessWidget {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : Border(
+            : const Border(
                 bottom: BorderSide(
                   color: AppColors.whiteColor,
                   width: 1,

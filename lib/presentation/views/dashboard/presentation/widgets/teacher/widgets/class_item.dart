@@ -26,7 +26,7 @@ class ClassItem extends StatelessWidget {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : Border(
+            : const Border(
                 bottom: BorderSide(
                   color: AppColors.whiteColor,
                   width: 1,
@@ -60,7 +60,7 @@ class ClassItem extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.notifications_none, size: 20, color: AppColors.whiteColor),
+            icon: const Icon(Icons.notifications_none, size: 20, color: AppColors.whiteColor),
             onPressed: onNotificationPressed,
             highlightColor: AppColors.darkCharcoal,
             tooltip: L?.notifyMe ?? 'Notify me',

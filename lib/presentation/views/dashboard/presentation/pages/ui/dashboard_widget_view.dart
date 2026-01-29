@@ -31,7 +31,7 @@ class _DashBoardWidgetView extends WidgetView<_DashBoardWidgetView, _DashboardCo
                       case UserRole.superAdmin:
                         return SuperAdminDashboard(profileState: profileManageState,);
                       case UserRole.schoolAdmin:
-                        return SchoolAdminDashboard();
+                        return SchoolAdminDashboard(profileState: profileManageState);
                       case UserRole.student:
                         return StudentDashboard();
                       case UserRole.parent:

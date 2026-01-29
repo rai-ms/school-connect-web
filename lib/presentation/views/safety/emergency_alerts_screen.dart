@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:student_management/core/base/logger/app_logger_impl.dart';
+import 'package:student_management/core/services/di/injector.dart';
+import 'package:student_management/presentation/widgets/customs/toast.dart';
 import 'package:student_management/presentation/widgets/gradient/glassy_background.dart';
 import '../../../core/utils/app_style.dart';
 import '../../../core/utils/app_colors.dart';
+import 'data/models/emergency_alert_model.dart';
+import 'data/repositories/safety_repository.dart';
 
 class EmergencyAlertsScreen extends StatefulWidget {
   const EmergencyAlertsScreen({super.key});
@@ -100,16 +105,36 @@ class _EmergencyAlertsScreenState extends State<EmergencyAlertsScreen>
 
       _shakeController.forward();
 
-      // TODO: Implement API call to trigger emergency alert
-      await Future.delayed(const Duration(seconds: 3));
+      try {
+        final repository = InjectorService.service.inject<SafetyRepository>();
+        final request = EmergencyAlertRequest(
+          title: 'SOS Emergency Alert',
+          message: 'Emergency alert triggered from mobile app',
+          alertType: 'SOS',
+          severity: 'HIGH',
+        );
 
-      if (mounted) {
-        setState(() {
-          _isTriggering = false;
-          _alertTriggered = true;
-        });
+        await repository.triggerEmergencyAlert(request);
 
-        _showSuccessDialog();
+        if (mounted) {
+          setState(() {
+            _isTriggering = false;
+            _alertTriggered = true;
+          });
+
+          _showSuccessDialog();
+        }
+      } catch (e) {
+        Log.e("Failed to trigger emergency alert: $e");
+        if (mounted) {
+          setState(() {
+            _isTriggering = false;
+          });
+          context.snackBar(
+            message: 'Failed to send alert. Please try again or call emergency contacts directly.',
+            backgroundColor: Colors.red,
+          );
+        }
       }
     }
   }
