@@ -1,12 +1,21 @@
-
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:student_management/core/services/route_service/route_names.dart';
 import 'package:student_management/core/utils/app_colors.dart';
 import 'package:student_management/core/utils/app_global.dart';
 import 'package:student_management/core/utils/size_utils.dart';
+import 'package:student_management/presentation/views/attendance/presentation/manager/attendance_bloc/attendance_bloc.dart';
+import 'package:student_management/presentation/views/dashboard/presentation/manager/profile_management_bloc/profile_management_bloc.dart';
+import 'package:student_management/presentation/views/notification/data/models/notification_model.dart';
+import 'package:student_management/presentation/views/notification/presentation/manager/notification_bloc/notification_bloc.dart';
+import 'package:student_management/presentation/views/student/presentation/manager/student_bloc/student_bloc.dart';
+import 'package:student_management/presentation/views/timetable/data/models/timetable_entry_model.dart';
+import 'package:student_management/presentation/views/timetable/presentation/manager/timetable_bloc/timetable_bloc.dart';
 
 class StudentDashboard extends StatefulWidget {
-  const StudentDashboard({super.key});
+  const StudentDashboard({super.key, required this.profileState});
+  final ProfileManageState profileState;
 
   @override
   State<StudentDashboard> createState() => _StudentDashboardState();
@@ -16,171 +25,284 @@ class _StudentDashboardState extends State<StudentDashboard> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
 
-  final List<Map<String, dynamic>> _upcomingClasses = [
-    {
-      'subject': 'Mathematics',
-      'time': '09:00 - 10:30 AM',
-      'room': 'Room 101',
-      'teacher': 'Mr. Smith',
-      'color': AppColors.selectiveYellow,
-    },
-    {
-      'subject': 'Science',
-      'time': '11:00 - 12:30 PM',
-      'room': 'Lab 2',
-      'teacher': 'Dr. Johnson',
-      'color': AppColors.greenCyan,
-    },
-    {
-      'subject': 'English',
-      'time': '02:00 - 03:30 PM',
-      'room': 'Room 205',
-      'teacher': 'Ms. Williams',
-      'color': AppColors.kuCrimson,
-    },
+  static const List<String> _dayNames = [
+    'MONDAY',
+    'TUESDAY',
+    'WEDNESDAY',
+    'THURSDAY',
+    'FRIDAY',
+    'SATURDAY',
+    'SUNDAY',
   ];
 
-  final List<Map<String, dynamic>> _quickActions = [
-    {'icon': Icons.assignment, 'label': 'Assignments', 'color': AppColors.greenCyan},
-    {'icon': Icons.calendar_today, 'label': 'Schedule', 'color': AppColors.kuCrimson},
-    {'icon': Icons.school, 'label': 'Courses', 'color': AppColors.selectiveYellow},
-    {'icon': Icons.assessment, 'label': 'Grades', 'color': AppColors.myrtleGreen},
-  ];
+  String? _studentClassId;
+
+  String get _todayDayName {
+    final weekday = DateTime.now().weekday; // 1=Monday, 7=Sunday
+    return _dayNames[(weekday - 1).clamp(0, 6)];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardData();
+  }
+
+  void _loadDashboardData() {
+    final userId = widget.profileState.profile?.id;
+    if (userId != null && userId.isNotEmpty) {
+      // Fetch attendance percentage using userId as studentId
+      context
+          .read<AttendanceBloc>()
+          .add(FetchStudentAttendancePercentage(userId));
+
+      // Fetch student details to get classId for timetable
+      context.read<StudentBloc>().add(FetchStudentById(userId));
+    }
+
+    // Fetch recent notifications
+    context.read<NotificationBloc>().add(const FetchNotifications());
+  }
+
+  void _loadTimetable(String classId) {
+    context.read<TimetableBloc>().add(FetchClassTimetable(classId));
+  }
 
   Future<void> _handleRefresh() async {
-    // Implement refresh logic here
-    await Future.delayed(const Duration(seconds: 2));
+    final userId = widget.profileState.profile?.id;
+    if (userId != null && userId.isNotEmpty) {
+      context
+          .read<AttendanceBloc>()
+          .add(FetchStudentAttendancePercentage(userId));
+      context.read<StudentBloc>().add(FetchStudentById(userId));
+    }
+    context.read<NotificationBloc>().add(const FetchNotifications());
+    if (_studentClassId != null) {
+      _loadTimetable(_studentClassId!);
+    }
+    // Give BLoCs time to respond
+    await Future.delayed(const Duration(milliseconds: 800));
+  }
+
+  Color _getSubjectColor(String? subject) {
+    if (subject == null) return AppColors.greenCyan;
+    final hash = subject.hashCode;
+    final colors = [
+      AppColors.greenCyan,
+      AppColors.selectiveYellow,
+      AppColors.kuCrimson,
+      AppColors.myrtleGreen,
+      AppColors.greenCyan,
+      AppColors.selectiveYellow,
+      AppColors.kuCrimson,
+    ];
+    return colors[hash.abs() % colors.length];
+  }
+
+  IconData _getNotificationIcon(String type) {
+    switch (type) {
+      case 'FEE_REMINDER':
+        return Icons.payment;
+      case 'ATTENDANCE_ALERT':
+        return Icons.fact_check;
+      case 'EXAM_NOTICE':
+        return Icons.school;
+      case 'ANNOUNCEMENT':
+        return Icons.campaign;
+      case 'LEAVE_STATUS':
+        return Icons.event_available;
+      case 'TIMETABLE_CHANGE':
+        return Icons.schedule;
+      case 'RESULT_PUBLISHED':
+        return Icons.grade;
+      default:
+        return Icons.notifications;
+    }
+  }
+
+  Color _getNotificationColor(String type) {
+    switch (type) {
+      case 'FEE_REMINDER':
+        return AppColors.selectiveYellow;
+      case 'ATTENDANCE_ALERT':
+        return AppColors.kuCrimson;
+      case 'EXAM_NOTICE':
+        return AppColors.greenCyan;
+      case 'ANNOUNCEMENT':
+        return AppColors.myrtleGreen;
+      case 'LEAVE_STATUS':
+        return AppColors.greenCyan;
+      case 'TIMETABLE_CHANGE':
+        return AppColors.selectiveYellow;
+      case 'RESULT_PUBLISHED':
+        return AppColors.kuCrimson;
+      default:
+        return AppColors.greenCyan;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
+    final profile = widget.profileState.profile;
 
-    return Scaffold(
-      backgroundColor: AppColors.ghostWhite,
-      body: RefreshIndicator(
-        key: _refreshIndicatorKey,
-        onRefresh: _handleRefresh,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              expandedHeight: size.height * 0.18,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.darkGunMetal,
-                        AppColors.myrtleGreen,
-                      ],
+    return BlocListener<StudentBloc, StudentState>(
+      listener: (context, state) {
+        if (state.isSuccess && state.selectedStudent != null) {
+          final classId = state.selectedStudent!.currentClassId;
+          if (classId != null && classId.isNotEmpty && classId != _studentClassId) {
+            _studentClassId = classId;
+            _loadTimetable(classId);
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.ghostWhite,
+        body: RefreshIndicator(
+          key: _refreshIndicatorKey,
+          onRefresh: _handleRefresh,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                expandedHeight: size.height * 0.18,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.darkGunMetal,
+                          AppColors.myrtleGreen,
+                        ],
+                      ),
                     ),
-                  ),
-                  padding: AppPadding.padSH16.copyWith(top: 12.v, bottom: 12.v),
-                  child: SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${L!.welcomeBack},',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: AppColors.whiteColor,
-                            fontWeight: FontWeight.w500,
+                    padding:
+                        AppPadding.padSH16.copyWith(top: 12.v, bottom: 12.v),
+                    child: SafeArea(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${L!.welcomeBack}, ${profile?.firstName ?? "Student"}',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              color: AppColors.whiteColor,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        Space.h4,
-                        Text(
-                          'Here\'s your dashboard',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: AppColors.whiteColor.withValues(alpha: 0.9),
+                          Space.h4,
+                          Text(
+                            'Here\'s your dashboard',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color:
+                                  AppColors.whiteColor.withValues(alpha: 0.9),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: AppPadding.padSV16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Quick Stats Row
-                    _buildQuickStats(theme),
-                    Space.h24,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: AppPadding.padSV16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Quick Stats Row
+                      _buildQuickStats(theme),
+                      Space.h24,
 
-                    // Upcoming Classes
-                    _buildSectionHeader('Upcoming Classes', theme),
-                    Space.h12,
-                    _buildUpcomingClasses(theme),
-                    Space.h24,
+                      // Upcoming Classes
+                      _buildSectionHeader('Today\'s Classes', theme),
+                      Space.h12,
+                      _buildUpcomingClasses(theme),
+                      Space.h24,
 
-                    // Quick Actions
-                    _buildSectionHeader('Quick Actions', theme),
-                    Space.h12,
-                    _buildQuickActions(theme),
-                    Space.h24,
+                      // Quick Actions
+                      _buildSectionHeader('Quick Actions', theme),
+                      Space.h12,
+                      _buildQuickActions(theme),
+                      Space.h24,
 
-                    // Recent Activity
-                    _buildSectionHeader('Recent Activity', theme),
-                    Space.h12,
-                    _buildRecentActivity(theme),
-                  ],
+                      // Recent Activity
+                      _buildSectionHeader('Recent Activity', theme),
+                      Space.h12,
+                      _buildRecentActivity(theme),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // ==================== QUICK STATS (Real Data) ====================
+
   Widget _buildQuickStats(ThemeData theme) {
-    return Container(
-      padding: AppPadding.padSV16,
-      decoration: BoxDecoration(
-        color: AppColors.whiteColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return BlocBuilder<AttendanceBloc, AttendanceState>(
+      builder: (context, attendanceState) {
+        final pct = attendanceState.percentage;
+        final attendanceStr =
+            pct != null ? '${pct.percentage.toStringAsFixed(1)}%' : '--';
+        final presentDays = pct?.presentDays.toString() ?? '--';
+        final absentDays = pct?.absentDays.toString() ?? '--';
+
+        return Container(
+          padding: AppPadding.padSV16,
+          decoration: BoxDecoration(
+            color: AppColors.whiteColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatItem(
-            '95%',
-            'Attendance',
-            Icons.calendar_today,
-            AppColors.greenCyan,
-            theme,
-          ),
-          _buildStatItem(
-            'A-',
-            'GPA',
-            Icons.school,
-            AppColors.selectiveYellow,
-            theme,
-          ),
-          _buildStatItem(
-            '3',
-            'Assignments Due',
-            Icons.assignment,
-            AppColors.kuCrimson,
-            theme,
-          ),
-        ],
-      ),
+          child: attendanceState.isLoading && pct == null
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatItem(
+                      attendanceStr,
+                      'Attendance',
+                      Icons.calendar_today,
+                      AppColors.greenCyan,
+                      theme,
+                    ),
+                    _buildStatItem(
+                      presentDays,
+                      'Present Days',
+                      Icons.check_circle_outline,
+                      AppColors.selectiveYellow,
+                      theme,
+                    ),
+                    _buildStatItem(
+                      absentDays,
+                      'Absent Days',
+                      Icons.cancel_outlined,
+                      AppColors.kuCrimson,
+                      theme,
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -215,21 +337,82 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
+  // ==================== UPCOMING CLASSES (Real Timetable Data) ====================
+
   Widget _buildUpcomingClasses(ThemeData theme) {
-    return ListView.separated(
-      shrinkWrap: true,
-      padding: AppPadding.padSV8,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _upcomingClasses.length,
-      separatorBuilder: (_, __) => Space.h12,
-      itemBuilder: (context, index) {
-        final classInfo = _upcomingClasses[index];
-        return _buildClassCard(classInfo, theme);
+    return BlocBuilder<TimetableBloc, TimetableState>(
+      builder: (context, timetableState) {
+        if (timetableState.isLoading && timetableState.entries.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        }
+
+        // Filter entries for today
+        final todayEntries = timetableState.entries.where((entry) {
+          return entry.dayOfWeek.toUpperCase() == _todayDayName &&
+              entry.isActive &&
+              !(entry.period?.isBreak ?? false);
+        }).toList()
+          ..sort((a, b) => (a.period?.periodNumber ?? 0)
+              .compareTo(b.period?.periodNumber ?? 0));
+
+        if (todayEntries.isEmpty) {
+          return Container(
+            padding: AppPadding.padSV16,
+            decoration: BoxDecoration(
+              color: AppColors.whiteColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.event_busy,
+                      size: 40,
+                      color: AppColors.romanSilver.withValues(alpha: 0.5)),
+                  Space.h8,
+                  Text(
+                    'No classes scheduled for today',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.romanSilver,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return ListView.separated(
+          shrinkWrap: true,
+          padding: AppPadding.padSV8,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: todayEntries.length,
+          separatorBuilder: (_, __) => Space.h12,
+          itemBuilder: (context, index) {
+            final entry = todayEntries[index];
+            return _buildClassCard(entry, theme);
+          },
+        );
       },
     );
   }
 
-  Widget _buildClassCard(Map<String, dynamic> classInfo, ThemeData theme) {
+  Widget _buildClassCard(TimetableEntryResponse entry, ThemeData theme) {
+    final color = _getSubjectColor(entry.subjectName);
+    final period = entry.period;
+    final timeRange = period != null ? period.timeRange : '';
+
     return Container(
       padding: AppPadding.padSV16,
       decoration: BoxDecoration(
@@ -249,7 +432,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
             width: 4,
             height: 60,
             decoration: BoxDecoration(
-              color: classInfo['color'] as Color,
+              color: color,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -259,7 +442,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  classInfo['subject'],
+                  entry.subjectName ?? 'Subject',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.chineseBlack,
@@ -267,7 +450,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                 ),
                 Space.h4,
                 Text(
-                  classInfo['time'],
+                  timeRange,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.darkElectricBlue,
                   ),
@@ -279,7 +462,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                classInfo['room'],
+                entry.room ?? '',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.darkElectricBlue,
                   fontWeight: FontWeight.w500,
@@ -287,7 +470,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               ),
               Space.h4,
               Text(
-                classInfo['teacher'],
+                entry.teacherName ?? '',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.romanSilver,
                 ),
@@ -299,37 +482,67 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
+  // ==================== QUICK ACTIONS (Real Navigation) ====================
+
   Widget _buildQuickActions(ThemeData theme) {
-    return GridView.builder(
+    return GridView.count(
       shrinkWrap: true,
       padding: AppPadding.padSV8,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: _quickActions.length,
-      itemBuilder: (context, index) {
-        final action = _quickActions[index];
-        return _buildActionItem(
-          action['icon'] as IconData,
-          action['label'] as String,
-          action['color'] as Color,
+      crossAxisCount: 4,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 0.8,
+      children: [
+        _buildActionItem(
+          Icons.assignment,
+          'Assignments',
+          AppColors.greenCyan,
           theme,
-        );
-      },
+          onTap: () => context.push(RoutesName.examList),
+        ),
+        _buildActionItem(
+          Icons.calendar_today,
+          'Schedule',
+          AppColors.kuCrimson,
+          theme,
+          onTap: () {
+            if (_studentClassId != null && _studentClassId!.isNotEmpty) {
+              context.push(
+                  RoutesName.timetable.replaceFirst(':classId', _studentClassId!));
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Class information not available yet')),
+              );
+            }
+          },
+        ),
+        _buildActionItem(
+          Icons.school,
+          'Courses',
+          AppColors.selectiveYellow,
+          theme,
+          onTap: () => context.push(RoutesName.classList),
+        ),
+        _buildActionItem(
+          Icons.assessment,
+          'Grades',
+          AppColors.myrtleGreen,
+          theme,
+          onTap: () => context.push(RoutesName.examList),
+        ),
+      ],
     );
   }
 
   Widget _buildActionItem(
-      IconData icon, String label, Color color, ThemeData theme) {
+      IconData icon, String label, Color color, ThemeData theme,
+      {VoidCallback? onTap}) {
     return Material(
       color: AppColors.whiteColor,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: AppPadding.padA12,
@@ -365,57 +578,92 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
+  // ==================== RECENT ACTIVITY (Real Notifications) ====================
+
   Widget _buildRecentActivity(ThemeData theme) {
-    return Container(
-      padding: AppPadding.padSV16,
-      decoration: BoxDecoration(
-        color: AppColors.whiteColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return BlocBuilder<NotificationBloc, NotificationState>(
+      builder: (context, notifState) {
+        if (notifState.isLoading && notifState.notifications.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        }
+
+        final notifications = notifState.notifications.take(5).toList();
+
+        if (notifications.isEmpty) {
+          return Container(
+            padding: AppPadding.padSV16,
+            decoration: BoxDecoration(
+              color: AppColors.whiteColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.notifications_none,
+                      size: 40,
+                      color: AppColors.romanSilver.withValues(alpha: 0.5)),
+                  Space.h8,
+                  Text(
+                    'No recent activity',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.romanSilver,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          padding: AppPadding.padSV16,
+          decoration: BoxDecoration(
+            color: AppColors.whiteColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildActivityItem(
-            'Math Assignment Graded',
-            'Your Linear Algebra assignment has been graded A',
-            '2 hours ago',
-            Icons.assignment_turned_in,
-            AppColors.greenCyan,
-            theme,
+          child: Column(
+            children: [
+              for (int i = 0; i < notifications.length; i++) ...[
+                if (i > 0) ...[
+                  Space.h16,
+                  const Divider(height: 24, color: AppColors.gainsboro),
+                ],
+                _buildActivityItem(
+                  notifications[i],
+                  theme,
+                ),
+              ],
+            ],
           ),
-          Space.h16,
-          const Divider(height: 24, color: AppColors.gainsboro),
-          _buildActivityItem(
-            'New Assignment',
-            'New Physics assignment due in 3 days',
-            '5 hours ago',
-            Icons.assignment,
-            AppColors.selectiveYellow,
-            theme,
-          ),
-          Space.h16,
-          const Divider(height: 24, color: AppColors.gainsboro),
-          _buildActivityItem(
-            'Class Cancelled',
-            'English class cancelled tomorrow',
-            '1 day ago',
-            Icons.cancel,
-            AppColors.kuCrimson,
-            theme,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildActivityItem(String title, String subtitle, String time,
-      IconData icon, Color color, ThemeData theme) {
+  Widget _buildActivityItem(
+      NotificationResponse notification, ThemeData theme) {
+    final color = _getNotificationColor(notification.notificationType);
+    final icon = _getNotificationIcon(notification.notificationType);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -433,7 +681,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                notification.title,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.chineseBlack,
@@ -441,16 +689,18 @@ class _StudentDashboardState extends State<StudentDashboard> {
               ),
               Space.h4,
               Text(
-                subtitle,
+                notification.body,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.darkElectricBlue,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
         Text(
-          time,
+          notification.timeAgo,
           style: theme.textTheme.labelSmall?.copyWith(
             color: AppColors.romanSilver,
           ),

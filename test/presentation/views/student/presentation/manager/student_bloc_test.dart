@@ -60,7 +60,14 @@ void main() {
       blocTest<StudentBloc, StudentState>(
         'emits loading then success with students when fetch succeeds',
         build: () {
-          when(mockRepository.getAllStudents()).thenAnswer(
+          when(mockRepository.getAllStudents(
+            page: anyNamed('page'),
+            size: anyNamed('size'),
+            classId: anyNamed('classId'),
+            sectionId: anyNamed('sectionId'),
+            status: anyNamed('status'),
+            search: anyNamed('search'),
+          )).thenAnswer(
             (_) async => PaginatedResponse.fromList(testStudents),
           );
           return bloc;
@@ -73,15 +80,28 @@ void main() {
               .having((s) => s.students.length, 'students.length', 2),
         ],
         verify: (_) {
-          verify(mockRepository.getAllStudents()).called(1);
+          verify(mockRepository.getAllStudents(
+            page: anyNamed('page'),
+            size: anyNamed('size'),
+            classId: anyNamed('classId'),
+            sectionId: anyNamed('sectionId'),
+            status: anyNamed('status'),
+            search: anyNamed('search'),
+          )).called(1);
         },
       );
 
       blocTest<StudentBloc, StudentState>(
         'emits loading then failed when fetch throws',
         build: () {
-          when(mockRepository.getAllStudents())
-              .thenAnswer((_) async => throw Exception('Network error'));
+          when(mockRepository.getAllStudents(
+            page: anyNamed('page'),
+            size: anyNamed('size'),
+            classId: anyNamed('classId'),
+            sectionId: anyNamed('sectionId'),
+            status: anyNamed('status'),
+            search: anyNamed('search'),
+          )).thenAnswer((_) async => throw Exception('Network error'));
           return bloc;
         },
         act: (bloc) => bloc.add(FetchStudents()),
@@ -90,7 +110,14 @@ void main() {
           isA<StudentState>().having((s) => s.isFailed, 'isFailed', true),
         ],
         verify: (_) {
-          verify(mockRepository.getAllStudents()).called(1);
+          verify(mockRepository.getAllStudents(
+            page: anyNamed('page'),
+            size: anyNamed('size'),
+            classId: anyNamed('classId'),
+            sectionId: anyNamed('sectionId'),
+            status: anyNamed('status'),
+            search: anyNamed('search'),
+          )).called(1);
         },
       );
     });

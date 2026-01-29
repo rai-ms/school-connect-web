@@ -33,9 +33,25 @@ class _DashBoardWidgetView extends WidgetView<_DashBoardWidgetView, _DashboardCo
                       case UserRole.schoolAdmin:
                         return SchoolAdminDashboard(profileState: profileManageState);
                       case UserRole.student:
-                        return StudentDashboard();
+                        return MultiBlocProvider(
+                          providers: [
+                            BlocProvider<TimetableBloc>(
+                              create: (_) => InjectorService.service.inject<TimetableBloc>(),
+                            ),
+                            BlocProvider<AttendanceBloc>(
+                              create: (_) => InjectorService.service.inject<AttendanceBloc>(),
+                            ),
+                            BlocProvider<NotificationBloc>(
+                              create: (_) => InjectorService.service.inject<NotificationBloc>(),
+                            ),
+                            BlocProvider<StudentBloc>(
+                              create: (_) => InjectorService.service.inject<StudentBloc>(),
+                            ),
+                          ],
+                          child: StudentDashboard(profileState: profileManageState),
+                        );
                       case UserRole.parent:
-                        return ParentDashboard();
+                        return ParentDashboard(profileState: profileManageState);
                       case UserRole.teacher:
                         return TeacherDashboard(profileState: profileManageState);
                       default:

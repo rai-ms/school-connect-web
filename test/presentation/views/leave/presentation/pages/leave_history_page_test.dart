@@ -270,7 +270,7 @@ class _LeaveHistoryBody extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(leave.reason ?? ''),
+                            Text(leave.reason),
                             Text(
                                 '${leave.startDate} - ${leave.endDate} (${leave.totalDays} days)'),
                             if (leave.status == 'PENDING') ...[

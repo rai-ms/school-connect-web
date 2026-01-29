@@ -20,6 +20,11 @@ import '../../../../../widgets/animated_loader/app_loader.dart';
 import '../../../domain/entities/user_role.dart';
 import '../../widgets/teacher/teacher_dashboard.dart';
 import 'package:student_management/core/base/logger/app_logger_impl.dart';
+import 'package:student_management/core/services/di/injector.dart';
+import 'package:student_management/presentation/views/timetable/presentation/manager/timetable_bloc/timetable_bloc.dart';
+import 'package:student_management/presentation/views/attendance/presentation/manager/attendance_bloc/attendance_bloc.dart';
+import 'package:student_management/presentation/views/notification/presentation/manager/notification_bloc/notification_bloc.dart';
+import 'package:student_management/presentation/views/student/presentation/manager/student_bloc/student_bloc.dart';
 
 part '../ui/dashboard_widget_view.dart';
 part 'mixins/dashboard_controller_mixin.dart';

@@ -1,56 +1,104 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:student_management/core/utils/app_colors.dart';
 import '../../../../../../../core/utils/app_style.dart';
 import '../../../../../../widgets/gradient/glassy_background.dart';
+import '../../../../../../views/notification/presentation/manager/notification_bloc/notification_bloc.dart';
+import '../../../../../../views/notification/data/models/notification_model.dart';
 
 class UpcomingEvents extends StatelessWidget {
   const UpcomingEvents({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> events = [
-      {
-        'title': 'Parent-Teacher Meeting',
-        'date': 'Tomorrow, 10:00 AM',
-        'color': Colors.blue,
-        'icon': Icons.people,
-      },
-      {
-        'title': 'Science Fair',
-        'date': 'Friday, 2:00 PM',
-        'color': Colors.green,
-        'icon': Icons.science,
-      },
-      {
-        'title': 'School Picnic',
-        'date': 'Next Monday, 9:00 AM',
-        'color': Colors.orange,
-        'icon': Icons.celebration,
-      },
-    ];
+    return BlocBuilder<NotificationBloc, NotificationState>(
+      builder: (context, state) {
+        if (state.isLoading && state.notifications.isEmpty) {
+          return GlassyBackground(
+            child: const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: CircularProgressIndicator(
+                  color: AppColors.blueColor,
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
+          );
+        }
 
-    return GlassyBackground(
-      child: Column(
-        children: [
-          for (var event in events) ...[
-            _buildEventItem(
-              event['title'],
-              event['date'],
-              event['color'],
-              event['icon'],
+        if (state.isFailed && state.notifications.isEmpty) {
+          return GlassyBackground(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Column(
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: AppColors.greyColor, size: 32),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Could not load notifications',
+                      style: AppStyles.regular.normal.greyColor,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            if (event != events.last) Container(
-              height: 2,
-              color: AppColors.greyColor,
+          );
+        }
+
+        final notifications = state.notifications;
+
+        if (notifications.isEmpty) {
+          return GlassyBackground(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Column(
+                  children: [
+                    const Icon(Icons.notifications_none,
+                        color: AppColors.greyColor, size: 32),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No recent notifications',
+                      style: AppStyles.regular.normal.greyColor,
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ],
-      ),
+          );
+        }
+
+        // Show up to 5 most recent notifications
+        final recentNotifications = notifications.take(5).toList();
+
+        return GlassyBackground(
+          child: Column(
+            children: [
+              for (int i = 0; i < recentNotifications.length; i++) ...[
+                _buildEventItem(
+                  recentNotifications[i],
+                  context,
+                ),
+                if (i < recentNotifications.length - 1)
+                  Container(
+                    height: 2,
+                    color: AppColors.greyColor,
+                  ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildEventItem(
-      String title, String date, Color color, IconData icon) {
+      NotificationResponse notification, BuildContext context) {
+    final typeInfo = _getTypeInfo(notification.notificationType);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -58,10 +106,10 @@ class UpcomingEvents extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
+              color: typeInfo.color.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(typeInfo.icon, color: typeInfo.color, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -69,25 +117,58 @@ class UpcomingEvents extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  notification.title,
                   style: AppStyles.large.medium.greyColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  date,
+                  notification.timeAgo,
                   style: AppStyles.semiMedium.medium.greyColor,
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.white70, size: 20),
-            onPressed: () {
-              // Handle notification
-            },
-          ),
+          if (!notification.isRead)
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: AppColors.blueColor,
+                shape: BoxShape.circle,
+              ),
+            ),
         ],
       ),
     );
   }
+
+  _NotificationTypeInfo _getTypeInfo(String type) {
+    switch (type) {
+      case 'FEE_REMINDER':
+        return _NotificationTypeInfo(Icons.payment, Colors.orange);
+      case 'ATTENDANCE_ALERT':
+        return _NotificationTypeInfo(Icons.fact_check, Colors.red);
+      case 'EXAM_NOTICE':
+        return _NotificationTypeInfo(Icons.school, Colors.blue);
+      case 'ANNOUNCEMENT':
+        return _NotificationTypeInfo(Icons.campaign, Colors.green);
+      case 'LEAVE_STATUS':
+        return _NotificationTypeInfo(Icons.event_available, Colors.teal);
+      case 'TIMETABLE_CHANGE':
+        return _NotificationTypeInfo(Icons.schedule, Colors.purple);
+      case 'RESULT_PUBLISHED':
+        return _NotificationTypeInfo(Icons.grade, Colors.amber);
+      default:
+        return _NotificationTypeInfo(Icons.notifications, Colors.blue);
+    }
+  }
+}
+
+class _NotificationTypeInfo {
+  final IconData icon;
+  final Color color;
+
+  _NotificationTypeInfo(this.icon, this.color);
 }

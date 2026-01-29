@@ -15,6 +15,7 @@ class AttendanceGauge extends StatelessWidget {
     this.strokeWidth = 10,
     this.backgroundColor,
     this.label = "Attendance",
+    this.isLoading = false,
     required this.profileState,
   });
 
@@ -25,6 +26,7 @@ class AttendanceGauge extends StatelessWidget {
   final double strokeWidth;
   final Color? backgroundColor;
   final String? label;
+  final bool isLoading;
 
   double get _ratio => total == 0 ? 0 : (present / total).clamp(0.0, 1.0);
 
@@ -67,60 +69,79 @@ class AttendanceGauge extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(
-            width: size,
-            height: size,
-            child: TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 1200),
-              curve: Curves.easeOutCubic,
-              tween: Tween<double>(begin: 0, end: _ratio),
-              builder: (context, animatedRatio, _) {
-                final String percentLabel = (animatedRatio * 100)
-                    .toStringAsFixed(0);
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CustomPaint(
-                      size: Size(size, size),
-                      painter: GaugePainter(
-                        ratio: animatedRatio,
-                        color: attendanceColor,
-                        backgroundColor: bg,
-                        strokeWidth: strokeWidth,
-                      ),
+          isLoading
+              ? SizedBox(
+                  width: size,
+                  height: size,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 3,
                     ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$percentLabel%',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                  ),
+                )
+              : SizedBox(
+                  width: size,
+                  height: size,
+                  child: TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 1200),
+                    curve: Curves.easeOutCubic,
+                    tween: Tween<double>(begin: 0, end: _ratio),
+                    builder: (context, animatedRatio, _) {
+                      final String percentLabel =
+                          (animatedRatio * 100).toStringAsFixed(0);
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CustomPaint(
+                            size: Size(size, size),
+                            painter: GaugePainter(
+                              ratio: animatedRatio,
+                              color: attendanceColor,
+                              backgroundColor: bg,
+                              strokeWidth: strokeWidth,
+                            ),
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                total > 0 ? '$percentLabel%' : '--',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                               ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '$present / $total',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.white70),
-                        ),
-                        if (label != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            label!,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: Colors.white70),
+                              const SizedBox(height: 2),
+                              Text(
+                                total > 0
+                                    ? '$present / $total'
+                                    : 'No data',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(color: Colors.white70),
+                              ),
+                              if (label != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  label!,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: Colors.white70),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
+                      );
+                    },
+                  ),
+                ),
         ],
       ),
     );
@@ -134,5 +155,3 @@ Color _getAttendanceColor(double percentage) {
   if (percentage < 85) return Colors.orange;
   return Colors.green;
 }
-
-

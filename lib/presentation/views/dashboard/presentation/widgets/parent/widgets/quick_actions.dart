@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:student_management/core/services/route_service/route_names.dart';
 import 'package:student_management/core/utils/size_utils.dart';
 
 import '../../../../../../../core/utils/app_style.dart';
@@ -14,21 +16,25 @@ class ParentQuickActions extends StatelessWidget {
         'icon': Icons.school,
         'label': 'Homework',
         'color': Colors.blue,
+        'route': RoutesName.examList,
       },
       {
         'icon': Icons.assignment,
         'label': 'Assignments',
         'color': Colors.green,
+        'route': RoutesName.examList,
       },
       {
         'icon': Icons.attach_money,
         'label': 'Fees',
         'color': Colors.orange,
+        'route': RoutesName.feeDashboard,
       },
       {
         'icon': Icons.calendar_today,
         'label': 'Schedule',
         'color': Colors.purple,
+        'route': RoutesName.notifications,
       },
     ];
 
@@ -45,22 +51,26 @@ class ParentQuickActions extends StatelessWidget {
       itemBuilder: (context, index) {
         final action = actions[index];
         return _buildActionItem(
+          context: context,
           icon: action['icon'] as IconData,
           label: action['label'] as String,
           color: action['color'] as Color,
+          route: action['route'] as String,
         );
       },
     );
   }
 
   Widget _buildActionItem({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required Color color,
+    required String route,
   }) {
     return GestureDetector(
       onTap: () {
-        // Handle action tap
+        context.push(route);
       },
       child: GlassyBackground(
         padding: AppPadding.z,

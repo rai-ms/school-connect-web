@@ -3,14 +3,14 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i5;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:student_management/core/base/paginated_response.dart' as _i5;
+import 'package:student_management/core/base/paginated_response.dart' as _i2;
 import 'package:student_management/presentation/views/student/data/models/student_model.dart'
-    as _i2;
-import 'package:student_management/presentation/views/student/data/repositories/student_repository.dart'
     as _i3;
+import 'package:student_management/presentation/views/student/data/repositories/student_repository.dart'
+    as _i4;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -25,9 +25,9 @@ import 'package:student_management/presentation/views/student/data/repositories/
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeStudentResponse_0 extends _i1.SmartFake
-    implements _i2.StudentResponse {
-  _FakeStudentResponse_0(
+class _FakePaginatedResponse_0<T> extends _i1.SmartFake
+    implements _i2.PaginatedResponse<T> {
+  _FakePaginatedResponse_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -36,9 +36,20 @@ class _FakeStudentResponse_0 extends _i1.SmartFake
         );
 }
 
-class _FakeStudentStatistics_1 extends _i1.SmartFake
-    implements _i2.StudentStatistics {
-  _FakeStudentStatistics_1(
+class _FakeStudentResponse_1 extends _i1.SmartFake
+    implements _i3.StudentResponse {
+  _FakeStudentResponse_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeStudentStatistics_2 extends _i1.SmartFake
+    implements _i3.StudentStatistics {
+  _FakeStudentStatistics_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -50,15 +61,15 @@ class _FakeStudentStatistics_1 extends _i1.SmartFake
 /// A class which mocks [StudentRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStudentRepository extends _i1.Mock implements _i3.StudentRepository {
+class MockStudentRepository extends _i1.Mock implements _i4.StudentRepository {
   MockStudentRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i5.PaginatedResponse<_i2.StudentResponse>> getAllStudents({
-    int page = 0,
-    int size = 20,
+  _i5.Future<_i2.PaginatedResponse<_i3.StudentResponse>> getAllStudents({
+    int? page,
+    int? size,
     String? classId,
     String? sectionId,
     String? status,
@@ -77,48 +88,62 @@ class MockStudentRepository extends _i1.Mock implements _i3.StudentRepository {
             #search: search,
           },
         ),
-        returnValue: _i4.Future<_i5.PaginatedResponse<_i2.StudentResponse>>.value(
-            _i5.PaginatedResponse<_i2.StudentResponse>.fromList(
-                <_i2.StudentResponse>[])),
-      ) as _i4.Future<_i5.PaginatedResponse<_i2.StudentResponse>>);
+        returnValue:
+            _i5.Future<_i2.PaginatedResponse<_i3.StudentResponse>>.value(
+                _FakePaginatedResponse_0<_i3.StudentResponse>(
+          this,
+          Invocation.method(
+            #getAllStudents,
+            [],
+            {
+              #page: page,
+              #size: size,
+              #classId: classId,
+              #sectionId: sectionId,
+              #status: status,
+              #search: search,
+            },
+          ),
+        )),
+      ) as _i5.Future<_i2.PaginatedResponse<_i3.StudentResponse>>);
 
   @override
-  _i4.Future<_i2.StudentResponse> getStudentById(String? studentId) =>
+  _i5.Future<_i3.StudentResponse> getStudentById(String? studentId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getStudentById,
           [studentId],
         ),
         returnValue:
-            _i4.Future<_i2.StudentResponse>.value(_FakeStudentResponse_0(
+            _i5.Future<_i3.StudentResponse>.value(_FakeStudentResponse_1(
           this,
           Invocation.method(
             #getStudentById,
             [studentId],
           ),
         )),
-      ) as _i4.Future<_i2.StudentResponse>);
+      ) as _i5.Future<_i3.StudentResponse>);
 
   @override
-  _i4.Future<_i2.StudentResponse> createStudent(
-          _i2.CreateStudentRequest? request) =>
+  _i5.Future<_i3.StudentResponse> createStudent(
+          _i3.CreateStudentRequest? request) =>
       (super.noSuchMethod(
         Invocation.method(
           #createStudent,
           [request],
         ),
         returnValue:
-            _i4.Future<_i2.StudentResponse>.value(_FakeStudentResponse_0(
+            _i5.Future<_i3.StudentResponse>.value(_FakeStudentResponse_1(
           this,
           Invocation.method(
             #createStudent,
             [request],
           ),
         )),
-      ) as _i4.Future<_i2.StudentResponse>);
+      ) as _i5.Future<_i3.StudentResponse>);
 
   @override
-  _i4.Future<_i2.StudentResponse> updateStudent(
+  _i5.Future<_i3.StudentResponse> updateStudent(
     String? studentId,
     Map<String, dynamic>? updates,
   ) =>
@@ -131,7 +156,7 @@ class MockStudentRepository extends _i1.Mock implements _i3.StudentRepository {
           ],
         ),
         returnValue:
-            _i4.Future<_i2.StudentResponse>.value(_FakeStudentResponse_0(
+            _i5.Future<_i3.StudentResponse>.value(_FakeStudentResponse_1(
           this,
           Invocation.method(
             #updateStudent,
@@ -141,20 +166,20 @@ class MockStudentRepository extends _i1.Mock implements _i3.StudentRepository {
             ],
           ),
         )),
-      ) as _i4.Future<_i2.StudentResponse>);
+      ) as _i5.Future<_i3.StudentResponse>);
 
   @override
-  _i4.Future<void> deleteStudent(String? studentId) => (super.noSuchMethod(
+  _i5.Future<void> deleteStudent(String? studentId) => (super.noSuchMethod(
         Invocation.method(
           #deleteStudent,
           [studentId],
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i4.Future<void> updateStudentStatus(
+  _i5.Future<void> updateStudentStatus(
     String? studentId,
     String? status,
   ) =>
@@ -166,45 +191,45 @@ class MockStudentRepository extends _i1.Mock implements _i3.StudentRepository {
             status,
           ],
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i4.Future<_i2.StudentStatistics> getStatistics() => (super.noSuchMethod(
+  _i5.Future<_i3.StudentStatistics> getStatistics() => (super.noSuchMethod(
         Invocation.method(
           #getStatistics,
           [],
         ),
         returnValue:
-            _i4.Future<_i2.StudentStatistics>.value(_FakeStudentStatistics_1(
+            _i5.Future<_i3.StudentStatistics>.value(_FakeStudentStatistics_2(
           this,
           Invocation.method(
             #getStatistics,
             [],
           ),
         )),
-      ) as _i4.Future<_i2.StudentStatistics>);
+      ) as _i5.Future<_i3.StudentStatistics>);
 
   @override
-  _i4.Future<List<_i2.StudentResponse>> getStudentsByClass(String? classId) =>
+  _i5.Future<List<_i3.StudentResponse>> getStudentsByClass(String? classId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getStudentsByClass,
           [classId],
         ),
-        returnValue: _i4.Future<List<_i2.StudentResponse>>.value(
-            <_i2.StudentResponse>[]),
-      ) as _i4.Future<List<_i2.StudentResponse>>);
+        returnValue: _i5.Future<List<_i3.StudentResponse>>.value(
+            <_i3.StudentResponse>[]),
+      ) as _i5.Future<List<_i3.StudentResponse>>);
 
   @override
-  _i4.Future<List<_i2.StudentResponse>> searchStudents(String? query) =>
+  _i5.Future<List<_i3.StudentResponse>> searchStudents(String? query) =>
       (super.noSuchMethod(
         Invocation.method(
           #searchStudents,
           [query],
         ),
-        returnValue: _i4.Future<List<_i2.StudentResponse>>.value(
-            <_i2.StudentResponse>[]),
-      ) as _i4.Future<List<_i2.StudentResponse>>);
+        returnValue: _i5.Future<List<_i3.StudentResponse>>.value(
+            <_i3.StudentResponse>[]),
+      ) as _i5.Future<List<_i3.StudentResponse>>);
 }
