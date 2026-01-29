@@ -39,6 +39,7 @@ import 'package:student_management/presentation/views/student/presentation/manag
 import 'package:student_management/presentation/views/student/presentation/pages/student_list_page.dart';
 import 'package:student_management/presentation/views/student/presentation/pages/student_detail_page.dart';
 import 'package:student_management/presentation/views/student/presentation/pages/add_student_page.dart';
+import 'package:student_management/presentation/views/student/presentation/pages/bulk_operations_page.dart';
 import 'package:student_management/presentation/views/teacher/presentation/manager/teacher_bloc/teacher_bloc.dart';
 import 'package:student_management/presentation/views/teacher/presentation/pages/teacher_list_page.dart';
 import 'package:student_management/presentation/views/teacher/presentation/pages/teacher_detail_page.dart';
@@ -52,6 +53,11 @@ import 'package:student_management/presentation/views/subject/presentation/pages
 import 'package:student_management/presentation/views/subject/presentation/pages/subject_detail_page.dart';
 import 'package:student_management/presentation/views/subject/presentation/pages/add_subject_page.dart';
 import 'package:student_management/presentation/views/subject/data/models/subject_model.dart';
+import 'package:student_management/presentation/views/calendar/presentation/manager/calendar_bloc/calendar_bloc.dart';
+import 'package:student_management/presentation/views/calendar/presentation/pages/calendar_page.dart';
+import 'package:student_management/presentation/views/calendar/presentation/pages/event_detail_page.dart';
+import 'package:student_management/presentation/views/calendar/presentation/pages/add_event_page.dart';
+import 'package:student_management/presentation/views/calendar/data/models/academic_event_model.dart';
 import 'package:student_management/presentation/views/class_mgmt/presentation/manager/class_bloc/class_bloc.dart';
 import 'package:student_management/presentation/views/class_mgmt/presentation/pages/class_list_page.dart';
 import 'package:student_management/presentation/views/class_mgmt/presentation/pages/class_detail_page.dart';
@@ -66,6 +72,11 @@ import 'package:student_management/presentation/views/settings/change_password_p
 import 'package:student_management/presentation/views/profile/profile_page.dart';
 import 'package:student_management/presentation/views/profile/edit_profile_page.dart';
 import 'package:student_management/presentation/views/settings/app_settings_page.dart';
+import 'package:student_management/presentation/views/assignment/presentation/manager/assignment_bloc/assignment_bloc.dart';
+import 'package:student_management/presentation/views/assignment/presentation/pages/assignment_list_page.dart';
+import 'package:student_management/presentation/views/assignment/presentation/pages/assignment_detail_page.dart';
+import 'package:student_management/presentation/views/assignment/presentation/pages/create_assignment_page.dart';
+import 'package:student_management/presentation/views/assignment/presentation/pages/grade_submission_page.dart';
 import 'package:student_management/presentation/views/splash/presentation/pages/controller/splash_controller.dart'
     show SplashController;
 
@@ -388,6 +399,16 @@ class RouteService extends BaseService<void, void> {
         ),
       ),
       GoRoute(
+        path: RoutesName.studentBulkOperations,
+        name: RoutesName.studentBulkOperations,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: BlocProvider(
+            create: (ctx) => InjectorService.service.inject<StudentBloc>(),
+            child: const BulkOperationsPage(),
+          ),
+        ),
+      ),
+      GoRoute(
         path: RoutesName.studentDetail,
         name: RoutesName.studentDetail,
         pageBuilder: (context, state) {
@@ -513,6 +534,45 @@ class RouteService extends BaseService<void, void> {
         },
       ),
 
+      // Academic Calendar Routes
+      GoRoute(
+        path: RoutesName.calendarHome,
+        name: RoutesName.calendarHome,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: BlocProvider(
+            create: (ctx) => InjectorService.service.inject<CalendarBloc>(),
+            child: const CalendarPage(),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RoutesName.addCalendarEvent,
+        name: RoutesName.addCalendarEvent,
+        pageBuilder: (context, state) {
+          final existingEvent = state.extra as AcademicEventResponse?;
+          return NoTransitionPage(
+            child: BlocProvider(
+              create: (ctx) => InjectorService.service.inject<CalendarBloc>(),
+              child: AddEventPage(existingEvent: existingEvent),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutesName.calendarEventDetail,
+        name: RoutesName.calendarEventDetail,
+        pageBuilder: (context, state) {
+          final eventId = state.pathParameters['eventId']!;
+          return NoTransitionPage(
+            child: BlocProvider(
+              create: (ctx) =>
+                  InjectorService.service.inject<CalendarBloc>(),
+              child: EventDetailPage(eventId: eventId),
+            ),
+          );
+        },
+      ),
+
       // Class Management Routes
       GoRoute(
         path: RoutesName.classList,
@@ -606,6 +666,57 @@ class RouteService extends BaseService<void, void> {
         path: RoutesName.feeCollection,
         name: RoutesName.feeCollection,
         redirect: (context, state) => RoutesName.feeDashboard,
+      ),
+
+      // Assignment Routes
+      GoRoute(
+        path: RoutesName.assignmentList,
+        name: RoutesName.assignmentList,
+        pageBuilder: (context, state) => NoTransitionPage(
+          child: BlocProvider(
+            create: (ctx) => InjectorService.service.inject<AssignmentBloc>(),
+            child: const AssignmentListPage(),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RoutesName.createAssignment,
+        name: RoutesName.createAssignment,
+        pageBuilder: (context, state) {
+          final editId = state.extra as String?;
+          return NoTransitionPage(
+            child: BlocProvider(
+              create: (ctx) => InjectorService.service.inject<AssignmentBloc>(),
+              child: CreateAssignmentPage(editAssignmentId: editId),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutesName.assignmentDetails,
+        name: RoutesName.assignmentDetails,
+        pageBuilder: (context, state) {
+          final assignmentId = state.pathParameters['assignmentId']!;
+          return NoTransitionPage(
+            child: BlocProvider(
+              create: (ctx) => InjectorService.service.inject<AssignmentBloc>(),
+              child: AssignmentDetailPage(assignmentId: assignmentId),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutesName.gradeSubmission,
+        name: RoutesName.gradeSubmission,
+        pageBuilder: (context, state) {
+          final submissionId = state.pathParameters['submissionId']!;
+          return NoTransitionPage(
+            child: BlocProvider(
+              create: (ctx) => InjectorService.service.inject<AssignmentBloc>(),
+              child: GradeSubmissionPage(submissionId: submissionId),
+            ),
+          );
+        },
       ),
 
       // Profile & App Settings Routes

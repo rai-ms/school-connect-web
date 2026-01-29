@@ -55,6 +55,13 @@ class _StudentListPageState extends State<StudentListPage> {
         backgroundColor: AppColors.backgroundImageColor,
         title: Text('Students', style: AppStyles.large.bold.white),
         iconTheme: const IconThemeData(color: AppColors.whiteColor),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.swap_vert, color: AppColors.whiteColor),
+            tooltip: 'Bulk Operations',
+            onPressed: () => context.push('/students/bulk-operations'),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/students/add'),

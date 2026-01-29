@@ -194,3 +194,53 @@ class StudentStatistics {
     );
   }
 }
+
+class BulkImportResult {
+  final int totalRows;
+  final int successCount;
+  final int errorCount;
+  final List<ImportError> errors;
+
+  BulkImportResult({
+    this.totalRows = 0,
+    this.successCount = 0,
+    this.errorCount = 0,
+    this.errors = const [],
+  });
+
+  factory BulkImportResult.fromJson(Map<String, dynamic> json) {
+    return BulkImportResult(
+      totalRows: json['totalRows'] ?? 0,
+      successCount: json['successCount'] ?? 0,
+      errorCount: json['errorCount'] ?? 0,
+      errors: json['errors'] is List
+          ? (json['errors'] as List)
+              .map((e) => ImportError.fromJson(e))
+              .toList()
+          : [],
+    );
+  }
+}
+
+class ImportError {
+  final int rowNumber;
+  final String fieldName;
+  final String errorMessage;
+  final String? rawValue;
+
+  ImportError({
+    required this.rowNumber,
+    required this.fieldName,
+    required this.errorMessage,
+    this.rawValue,
+  });
+
+  factory ImportError.fromJson(Map<String, dynamic> json) {
+    return ImportError(
+      rowNumber: json['rowNumber'] ?? 0,
+      fieldName: json['fieldName'] ?? '',
+      errorMessage: json['errorMessage'] ?? '',
+      rawValue: json['rawValue'],
+    );
+  }
+}

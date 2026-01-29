@@ -71,6 +71,24 @@ class _SchoolAdminDashboardState extends State<SchoolAdminDashboard> {
       'route': RoutesName.leaveHistory,
     },
     {
+      'icon': Icons.assignment,
+      'label': 'Assignments',
+      'color': AppColors.safetyLightBlue,
+      'route': RoutesName.assignmentList,
+    },
+    {
+      'icon': Icons.assignment,
+      'label': 'Assignments',
+      'color': AppColors.safetyLightBlue,
+      'route': RoutesName.assignmentList,
+    },
+    {
+      'icon': Icons.calendar_month,
+      'label': 'Calendar',
+      'color': AppColors.safetyBlue,
+      'route': RoutesName.calendarHome,
+    },
+    {
       'icon': Icons.security,
       'label': 'Safety',
       'color': AppColors.safetyOrange,

@@ -9,6 +9,8 @@ class StudentState extends BlocEventState<List<StudentResponse>> {
   final int totalPages;
   final bool hasMore;
   final bool isLoadingMore;
+  final BulkImportResult? importResult;
+  final String? exportedFilePath;
 
   const StudentState({
     super.state,
@@ -24,6 +26,8 @@ class StudentState extends BlocEventState<List<StudentResponse>> {
     this.totalPages = 0,
     this.hasMore = true,
     this.isLoadingMore = false,
+    this.importResult,
+    this.exportedFilePath,
   });
 
   @override
@@ -41,6 +45,8 @@ class StudentState extends BlocEventState<List<StudentResponse>> {
     int? totalPages,
     bool? hasMore,
     bool? isLoadingMore,
+    BulkImportResult? importResult,
+    String? exportedFilePath,
   }) {
     return StudentState(
       state: state ?? this.state,
@@ -56,6 +62,8 @@ class StudentState extends BlocEventState<List<StudentResponse>> {
       totalPages: totalPages ?? this.totalPages,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      importResult: importResult ?? this.importResult,
+      exportedFilePath: exportedFilePath ?? this.exportedFilePath,
     );
   }
 

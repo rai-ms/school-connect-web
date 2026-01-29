@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:student_management/core/base/paginated_response.dart';
 import 'package:student_management/core/services/api_service/api_dispatcher.dart';
@@ -21,6 +24,9 @@ abstract class StudentRepository {
   Future<StudentStatistics> getStatistics();
   Future<List<StudentResponse>> getStudentsByClass(String classId);
   Future<List<StudentResponse>> searchStudents(String query);
+  Future<BulkImportResult> importStudents(String filePath, {String? classId});
+  Future<Uint8List> exportStudents({String? classId, String? sectionId, String? status});
+  Future<Uint8List> downloadImportTemplate();
 }
 
 @Singleton(as: StudentRepository)
@@ -139,5 +145,45 @@ class StudentRepositoryImpl implements StudentRepository {
     return (data as List)
         .map((e) => StudentResponse.fromJson(e))
         .toList();
+  }
+
+  @override
+  Future<BulkImportResult> importStudents(String filePath, {String? classId}) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: 'students.csv'),
+      if (classId != null) 'classId': classId,
+    });
+    final response = await _apiDispatcher.call(
+      type: RequestType.formData,
+      endPoint: 'api/students/import',
+      formData: formData,
+    );
+    return BulkImportResult.fromJson(response.data);
+  }
+
+  @override
+  Future<Uint8List> exportStudents({String? classId, String? sectionId, String? status}) async {
+    final params = <String>[];
+    if (classId != null) params.add('classId=$classId');
+    if (sectionId != null) params.add('sectionId=$sectionId');
+    if (status != null) params.add('status=$status');
+
+    final query = params.isNotEmpty ? '?${params.join('&')}' : '';
+    final response = await _apiDispatcher.call(
+      type: RequestType.get,
+      endPoint: 'api/students/export$query',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data);
+  }
+
+  @override
+  Future<Uint8List> downloadImportTemplate() async {
+    final response = await _apiDispatcher.call(
+      type: RequestType.get,
+      endPoint: 'api/students/import/template',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data);
   }
 }

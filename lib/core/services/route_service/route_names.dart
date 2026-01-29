@@ -38,6 +38,7 @@ abstract class RoutesName {
   static const String studentList = '/students';
   static const String studentDetail = '/students/:studentId';
   static const String addStudent = '/students/add';
+  static const String studentBulkOperations = '/students/bulk-operations';
 
   // Teacher Management Routes
   static const String teacherList = '/teachers';
@@ -53,6 +54,11 @@ abstract class RoutesName {
   static const String subjectList = '/subjects';
   static const String subjectDetail = '/subjects/:subjectId';
   static const String addSubject = '/subjects/add';
+
+  // Academic Calendar Routes
+  static const String calendarHome = '/calendar';
+  static const String calendarEventDetail = '/calendar/:eventId';
+  static const String addCalendarEvent = '/calendar/add';
 
   // Class Management Routes
   static const String classList = '/classes';
@@ -75,6 +81,12 @@ abstract class RoutesName {
   static const String safetyHome = '/safety';
   static const String feeCollection = '/fee-collection';
   static const String settings = '/settings';
+
+  // Assignment Routes
+  static const String assignmentList = '/assignments';
+  static const String createAssignment = '/assignments/create';
+  static const String assignmentDetails = '/assignments/:assignmentId';
+  static const String gradeSubmission = '/assignments/submissions/:submissionId/grade';
 
   // Profile & App Settings Routes
   static const String profile = '/profile';

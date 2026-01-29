@@ -21,6 +21,14 @@ import '../../../presentation/my_app/domain/use_case/secure_storage_use_case.dar
     as _i822;
 import '../../../presentation/my_app/presentation/manager/bloc/app_config_bloc/app_config_bloc.dart'
     as _i940;
+import '../../../presentation/views/calendar/data/repositories/academic_calendar_repository.dart'
+    as _i750;
+import '../../../presentation/views/calendar/presentation/manager/calendar_bloc/calendar_bloc.dart'
+    as _i751;
+import '../../../presentation/views/assignment/data/repositories/assignment_repository.dart'
+    as _i850;
+import '../../../presentation/views/assignment/presentation/manager/assignment_bloc/assignment_bloc.dart'
+    as _i851;
 import '../../../presentation/views/attendance/data/repositories/attendance_repository.dart'
     as _i499;
 import '../../../presentation/views/attendance/presentation/manager/attendance_bloc/attendance_bloc.dart'
@@ -240,6 +248,12 @@ Future<_i174.GetIt> injectAllData(
       () => _i378.FeeRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.singleton<_i958.SubjectRepository>(
       () => _i958.SubjectRepositoryImpl(gh<_i896.ApiDispatcher>()));
+  gh.singleton<_i750.AcademicCalendarRepository>(
+      () => _i750.AcademicCalendarRepositoryImpl(gh<_i896.ApiDispatcher>()));
+  gh.singleton<_i850.AssignmentRepository>(
+      () => _i850.AssignmentRepositoryImpl(gh<_i896.ApiDispatcher>()));
+  gh.singleton<_i850.AssignmentRepository>(
+      () => _i850.AssignmentRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.lazySingleton<_i1045.AppConfigRepo>(
       () => _i1013.AppConfigRepoImpl(gh<_i896.ApiDispatcher>()));
   gh.factory<_i737.ParentBloc>(() => _i737.ParentBloc(
@@ -313,6 +327,18 @@ Future<_i174.GetIt> injectAllData(
       ));
   gh.factory<_i603.SubjectBloc>(() => _i603.SubjectBloc(
         gh<_i958.SubjectRepository>(),
+        gh<_i140.StateRequestHandler>(),
+      ));
+  gh.factory<_i751.CalendarBloc>(() => _i751.CalendarBloc(
+        gh<_i750.AcademicCalendarRepository>(),
+        gh<_i140.StateRequestHandler>(),
+      ));
+  gh.factory<_i851.AssignmentBloc>(() => _i851.AssignmentBloc(
+        gh<_i850.AssignmentRepository>(),
+        gh<_i140.StateRequestHandler>(),
+      ));
+  gh.factory<_i851.AssignmentBloc>(() => _i851.AssignmentBloc(
+        gh<_i850.AssignmentRepository>(),
         gh<_i140.StateRequestHandler>(),
       ));
   gh.lazySingleton<_i331.FetchAppConfigUseCase>(

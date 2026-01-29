@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:student_management/core/base/bloc_base/bloc_event.dart';
 import 'package:student_management/core/base/bloc_base/bloc_event_state.dart';
 import 'package:student_management/core/base/logger/app_logger_impl.dart';
@@ -26,6 +29,9 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
     on<SearchStudents>(_onSearchStudents);
     on<FetchStudentStatistics>(_onFetchStatistics);
     on<FetchStudentsByClass>(_onFetchByClass);
+    on<ExportStudents>(_onExportStudents);
+    on<ImportStudents>(_onImportStudents);
+    on<DownloadImportTemplate>(_onDownloadTemplate);
   }
 
   FVoid _onFetchStudents(
@@ -232,6 +238,91 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
       },
       error: (e) {
         Log.e('Error fetching students by class: $e');
+        emit(state.copyWith(state: state.failed, error: e.toString()));
+      },
+    );
+  }
+
+  FVoid _onExportStudents(
+      ExportStudents event, Emitter<StudentState> emit) async {
+    await _handler(
+      apiCall: () async {
+        emit(state.copyWith(state: state.loading, event: event));
+        final bytes = await _repository.exportStudents(
+          classId: event.classId,
+          sectionId: event.sectionId,
+          status: event.status,
+        );
+        final dir = await getApplicationDocumentsDirectory();
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final filePath = '${dir.path}/students_export_$timestamp.csv';
+        final file = File(filePath);
+        await file.writeAsBytes(bytes);
+        emit(state.copyWith(
+          state: state.success,
+          exportedFilePath: filePath,
+          actionCompleted: true,
+        ));
+      },
+      dioError: (e) {
+        Log.e('Error exporting students: ${e.message}');
+        emit(state.copyWith(state: state.failed, error: e.message));
+      },
+      error: (e) {
+        Log.e('Error exporting students: $e');
+        emit(state.copyWith(state: state.failed, error: e.toString()));
+      },
+    );
+  }
+
+  FVoid _onImportStudents(
+      ImportStudents event, Emitter<StudentState> emit) async {
+    await _handler(
+      apiCall: () async {
+        emit(state.copyWith(state: state.loading, event: event));
+        final result = await _repository.importStudents(
+          event.filePath,
+          classId: event.classId,
+        );
+        emit(state.copyWith(
+          state: state.success,
+          importResult: result,
+          actionCompleted: true,
+        ));
+      },
+      dioError: (e) {
+        Log.e('Error importing students: ${e.message}');
+        emit(state.copyWith(state: state.failed, error: e.message));
+      },
+      error: (e) {
+        Log.e('Error importing students: $e');
+        emit(state.copyWith(state: state.failed, error: e.toString()));
+      },
+    );
+  }
+
+  FVoid _onDownloadTemplate(
+      DownloadImportTemplate event, Emitter<StudentState> emit) async {
+    await _handler(
+      apiCall: () async {
+        emit(state.copyWith(state: state.loading, event: event));
+        final bytes = await _repository.downloadImportTemplate();
+        final dir = await getApplicationDocumentsDirectory();
+        final filePath = '${dir.path}/student_import_template.csv';
+        final file = File(filePath);
+        await file.writeAsBytes(bytes);
+        emit(state.copyWith(
+          state: state.success,
+          exportedFilePath: filePath,
+          actionCompleted: true,
+        ));
+      },
+      dioError: (e) {
+        Log.e('Error downloading template: ${e.message}');
+        emit(state.copyWith(state: state.failed, error: e.message));
+      },
+      error: (e) {
+        Log.e('Error downloading template: $e');
         emit(state.copyWith(state: state.failed, error: e.toString()));
       },
     );

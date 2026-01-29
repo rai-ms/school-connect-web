@@ -53,3 +53,20 @@ class FetchStudentsByClass extends StudentEvent {
   final String classId;
   const FetchStudentsByClass(this.classId);
 }
+
+class ExportStudents extends StudentEvent {
+  final String? classId;
+  final String? sectionId;
+  final String? status;
+  const ExportStudents({this.classId, this.sectionId, this.status});
+}
+
+class ImportStudents extends StudentEvent {
+  final String filePath;
+  final String? classId;
+  const ImportStudents({required this.filePath, this.classId});
+}
+
+class DownloadImportTemplate extends StudentEvent {
+  const DownloadImportTemplate();
+}
