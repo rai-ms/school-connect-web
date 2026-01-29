@@ -4,6 +4,10 @@ class TeacherState extends BlocEventState<List<TeacherResponse>> {
   final List<TeacherResponse> teachers;
   final TeacherResponse? selectedTeacher;
   final bool actionCompleted;
+  final int currentPage;
+  final int totalPages;
+  final bool hasMore;
+  final bool isLoadingMore;
 
   const TeacherState({
     super.state,
@@ -14,6 +18,10 @@ class TeacherState extends BlocEventState<List<TeacherResponse>> {
     this.teachers = const [],
     this.selectedTeacher,
     this.actionCompleted = false,
+    this.currentPage = 0,
+    this.totalPages = 0,
+    this.hasMore = true,
+    this.isLoadingMore = false,
   });
 
   @override
@@ -26,6 +34,10 @@ class TeacherState extends BlocEventState<List<TeacherResponse>> {
     List<TeacherResponse>? teachers,
     TeacherResponse? selectedTeacher,
     bool? actionCompleted,
+    int? currentPage,
+    int? totalPages,
+    bool? hasMore,
+    bool? isLoadingMore,
   }) {
     return TeacherState(
       state: state ?? this.state,
@@ -36,6 +48,10 @@ class TeacherState extends BlocEventState<List<TeacherResponse>> {
       teachers: teachers ?? this.teachers,
       selectedTeacher: selectedTeacher ?? this.selectedTeacher,
       actionCompleted: actionCompleted ?? false,
+      currentPage: currentPage ?? this.currentPage,
+      totalPages: totalPages ?? this.totalPages,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 

@@ -55,10 +55,18 @@ abstract class RoutesName {
   // Notification Routes
   static const String notifications = '/notifications';
 
+  // Auth Routes
+  static const String forgotPassword = '/forgot-password';
+  static const String changePassword = '/change-password';
+
   // School Admin Routes
   static const String manageClasses = '/manage-classes';
   static const String reports = '/reports';
   static const String safetyHome = '/safety';
   static const String feeCollection = '/fee-collection';
   static const String settings = '/settings';
+
+  // Profile & App Settings Routes
+  static const String profile = '/profile';
+  static const String appSettings = '/app-settings';
 }

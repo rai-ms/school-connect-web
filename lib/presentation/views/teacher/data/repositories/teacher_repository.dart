@@ -1,9 +1,10 @@
 import 'package:injectable/injectable.dart';
+import 'package:student_management/core/base/paginated_response.dart';
 import 'package:student_management/core/services/api_service/api_dispatcher.dart';
 import '../models/teacher_model.dart';
 
 abstract class TeacherRepository {
-  Future<List<TeacherResponse>> getAllTeachers({int page, int size});
+  Future<PaginatedResponse<TeacherResponse>> getAllTeachers({int page, int size});
   Future<TeacherResponse> getTeacherById(String id);
   Future<TeacherResponse> getTeacherByEmployeeId(String employeeId);
   Future<TeacherResponse> createTeacher(CreateTeacherRequest request);
@@ -19,20 +20,23 @@ class TeacherRepositoryImpl implements TeacherRepository {
   TeacherRepositoryImpl(this._apiDispatcher);
 
   @override
-  Future<List<TeacherResponse>> getAllTeachers(
+  Future<PaginatedResponse<TeacherResponse>> getAllTeachers(
       {int page = 0, int size = 20}) async {
     final response = await _apiDispatcher.call(
       type: RequestType.get,
       endPoint: 'api/teachers?page=$page&size=$size',
     );
-    final data = response.data is Map
-        ? (response.data['content'] ?? [])
-        : response.data is List
-            ? response.data
-            : [];
-    return (data as List)
-        .map((e) => TeacherResponse.fromJson(e))
-        .toList();
+    if (response.data is Map<String, dynamic>) {
+      return PaginatedResponse.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => TeacherResponse.fromJson(json),
+      );
+    }
+    // Fallback for plain list responses
+    final data = response.data is List ? response.data as List : [];
+    return PaginatedResponse.fromList(
+      data.map((e) => TeacherResponse.fromJson(e)).toList(),
+    );
   }
 
   @override

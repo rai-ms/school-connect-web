@@ -5,6 +5,10 @@ class StudentState extends BlocEventState<List<StudentResponse>> {
   final StudentResponse? selectedStudent;
   final StudentStatistics? statistics;
   final bool actionCompleted;
+  final int currentPage;
+  final int totalPages;
+  final bool hasMore;
+  final bool isLoadingMore;
 
   const StudentState({
     super.state,
@@ -16,6 +20,10 @@ class StudentState extends BlocEventState<List<StudentResponse>> {
     this.selectedStudent,
     this.statistics,
     this.actionCompleted = false,
+    this.currentPage = 0,
+    this.totalPages = 0,
+    this.hasMore = true,
+    this.isLoadingMore = false,
   });
 
   @override
@@ -29,6 +37,10 @@ class StudentState extends BlocEventState<List<StudentResponse>> {
     StudentResponse? selectedStudent,
     StudentStatistics? statistics,
     bool? actionCompleted,
+    int? currentPage,
+    int? totalPages,
+    bool? hasMore,
+    bool? isLoadingMore,
   }) {
     return StudentState(
       state: state ?? this.state,
@@ -40,6 +52,10 @@ class StudentState extends BlocEventState<List<StudentResponse>> {
       selectedStudent: selectedStudent ?? this.selectedStudent,
       statistics: statistics ?? this.statistics,
       actionCompleted: actionCompleted ?? false,
+      currentPage: currentPage ?? this.currentPage,
+      totalPages: totalPages ?? this.totalPages,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 

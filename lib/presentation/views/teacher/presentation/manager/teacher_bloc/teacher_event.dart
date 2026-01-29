@@ -5,7 +5,14 @@ class TeacherEvent extends BlocEvent {
 }
 
 class FetchTeachers extends TeacherEvent {
-  const FetchTeachers();
+  final int page;
+  final int size;
+  final bool loadMore;
+  const FetchTeachers({
+    this.page = 0,
+    this.size = 20,
+    this.loadMore = false,
+  });
 }
 
 class FetchTeacherById extends TeacherEvent {

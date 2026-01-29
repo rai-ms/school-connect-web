@@ -30,17 +30,42 @@ class TeacherBloc extends Bloc<TeacherEvent, TeacherState> {
       FetchTeachers event, Emitter<TeacherState> emit) async {
     await _handler(
       apiCall: () async {
-        emit(state.copyWith(state: state.loading, event: event));
-        final teachers = await _repository.getAllTeachers();
-        emit(state.copyWith(state: state.success, teachers: teachers));
+        if (event.loadMore) {
+          emit(state.copyWith(isLoadingMore: true));
+        } else {
+          emit(state.copyWith(state: state.loading, event: event));
+        }
+        final result = await _repository.getAllTeachers(
+          page: event.page,
+          size: event.size,
+        );
+        final updatedTeachers = event.loadMore
+            ? [...state.teachers, ...result.content]
+            : result.content;
+        emit(state.copyWith(
+          state: state.success,
+          teachers: updatedTeachers,
+          currentPage: result.number,
+          totalPages: result.totalPages,
+          hasMore: !result.last,
+          isLoadingMore: false,
+        ));
       },
       dioError: (e) {
         Log.e('Error fetching teachers: ${e.message}');
-        emit(state.copyWith(state: state.failed, error: e.message));
+        emit(state.copyWith(
+          state: state.failed,
+          error: e.message,
+          isLoadingMore: false,
+        ));
       },
       error: (e) {
         Log.e('Error fetching teachers: $e');
-        emit(state.copyWith(state: state.failed, error: e.toString()));
+        emit(state.copyWith(
+          state: state.failed,
+          error: e.toString(),
+          isLoadingMore: false,
+        ));
       },
     );
   }
@@ -71,10 +96,13 @@ class TeacherBloc extends Bloc<TeacherEvent, TeacherState> {
       apiCall: () async {
         emit(state.copyWith(state: state.loading, event: event));
         await _repository.createTeacher(event.request);
-        final teachers = await _repository.getAllTeachers();
+        final result = await _repository.getAllTeachers();
         emit(state.copyWith(
             state: state.success,
-            teachers: teachers,
+            teachers: result.content,
+            currentPage: result.number,
+            totalPages: result.totalPages,
+            hasMore: !result.last,
             actionCompleted: true));
       },
       dioError: (e) {
@@ -117,10 +145,13 @@ class TeacherBloc extends Bloc<TeacherEvent, TeacherState> {
       apiCall: () async {
         emit(state.copyWith(state: state.loading, event: event));
         await _repository.deleteTeacher(event.id);
-        final teachers = await _repository.getAllTeachers();
+        final result = await _repository.getAllTeachers();
         emit(state.copyWith(
             state: state.success,
-            teachers: teachers,
+            teachers: result.content,
+            currentPage: result.number,
+            totalPages: result.totalPages,
+            hasMore: !result.last,
             actionCompleted: true));
       },
       dioError: (e) {

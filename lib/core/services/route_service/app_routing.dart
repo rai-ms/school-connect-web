@@ -17,6 +17,7 @@ import 'package:student_management/presentation/views/login/presentation/pages/c
 import 'package:student_management/presentation/views/safety/counseling_referral_screen.dart';
 import 'package:student_management/presentation/views/safety/emergency_alerts_screen.dart';
 import 'package:student_management/presentation/views/safety/incident_report_screen.dart';
+import 'package:student_management/presentation/views/safety/safety_log_page.dart';
 import 'package:student_management/presentation/views/exam/presentation/manager/exam_bloc/exam_bloc.dart';
 import 'package:student_management/presentation/views/exam/presentation/pages/create_exam_page.dart';
 import 'package:student_management/presentation/views/exam/presentation/pages/exam_details_page.dart';
@@ -51,6 +52,10 @@ import 'package:student_management/presentation/views/attendance/presentation/pa
 import 'package:student_management/presentation/views/notification/presentation/manager/notification_bloc/notification_bloc.dart';
 import 'package:student_management/presentation/views/notification/presentation/pages/notification_list_page.dart';
 import 'package:student_management/presentation/views/reports/presentation/pages/reports_page.dart';
+import 'package:student_management/presentation/views/login/presentation/pages/forgot_password_page.dart';
+import 'package:student_management/presentation/views/settings/change_password_page.dart';
+import 'package:student_management/presentation/views/profile/profile_page.dart';
+import 'package:student_management/presentation/views/settings/app_settings_page.dart';
 import 'package:student_management/presentation/views/splash/presentation/pages/controller/splash_controller.dart'
     show SplashController;
 
@@ -101,6 +106,18 @@ class RouteService extends BaseService<void, void> {
         pageBuilder: (context, state) =>
             const NoTransitionPage(child: LoginController()),
       ),
+      GoRoute(
+        path: RoutesName.forgotPassword,
+        name: RoutesName.forgotPassword,
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: ForgotPasswordPage()),
+      ),
+      GoRoute(
+        path: RoutesName.changePassword,
+        name: RoutesName.changePassword,
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: ChangePasswordPage()),
+      ),
       // Main App Screens
       GoRoute(
         path: RoutesName.home,
@@ -142,14 +159,7 @@ class RouteService extends BaseService<void, void> {
         path: RoutesName.safetyLog,
         name: RoutesName.safetyLog,
         pageBuilder: (context, state) => const NoTransitionPage(
-          child: Scaffold(
-            body: Center(
-              child: Text(
-                'Safety Log - Coming Soon',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            ),
-          ),
+          child: SafetyLogPage(),
         ),
       ),
       GoRoute(
@@ -493,6 +503,46 @@ class RouteService extends BaseService<void, void> {
         name: RoutesName.reports,
         pageBuilder: (context, state) => const NoTransitionPage(
           child: ReportsPage(),
+        ),
+      ),
+
+      // Redirect Routes (aliases for existing pages)
+      GoRoute(
+        path: RoutesName.manageClasses,
+        name: RoutesName.manageClasses,
+        redirect: (context, state) => RoutesName.classList,
+      ),
+      GoRoute(
+        path: RoutesName.safetyHome,
+        name: RoutesName.safetyHome,
+        redirect: (context, state) => RoutesName.safetyLog,
+      ),
+      GoRoute(
+        path: RoutesName.feeCollection,
+        name: RoutesName.feeCollection,
+        redirect: (context, state) => RoutesName.feeDashboard,
+      ),
+
+      // Profile & App Settings Routes
+      GoRoute(
+        path: RoutesName.profile,
+        name: RoutesName.profile,
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: ProfilePage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutesName.settings,
+        name: RoutesName.settings,
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: AppSettingsPage(),
+        ),
+      ),
+      GoRoute(
+        path: RoutesName.appSettings,
+        name: RoutesName.appSettings,
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: AppSettingsPage(),
         ),
       ),
     ],

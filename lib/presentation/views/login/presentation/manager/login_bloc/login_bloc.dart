@@ -97,5 +97,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   FVoid _onLogoutRequested(
     LogoutRequested event,
     Emitter<LoginState> emit,
-  ) async {}
+  ) async {
+    await _storageService.clearAuthData();
+    emit(state.copyWith(state: state.success, event: event));
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:student_management/core/base/logger/app_logger_impl.dart';
 import 'package:student_management/core/services/di/injector.dart';
 import 'package:student_management/presentation/widgets/customs/toast.dart';
@@ -55,11 +56,14 @@ class _IncidentReportScreenState extends State<IncidentReportScreen> {
     super.dispose();
   }
 
-  void _addAttachment() {
-    // TODO: Implement file picker
-    setState(() {
-      _attachments.add('attachment_${_attachments.length + 1}.pdf');
-    });
+  void _addAttachment() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _attachments.add(image.name);
+      });
+    }
   }
 
   void _removeAttachment(int index) {

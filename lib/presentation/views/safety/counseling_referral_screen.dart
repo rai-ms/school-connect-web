@@ -6,6 +6,8 @@ import 'package:student_management/presentation/widgets/customs/toast.dart';
 import 'package:student_management/presentation/widgets/gradient/glassy_background.dart';
 import '../../../core/utils/app_style.dart';
 import '../../../core/utils/app_colors.dart';
+import '../student/data/models/student_model.dart';
+import '../student/data/repositories/student_repository.dart';
 import 'data/models/counseling_referral_model.dart';
 import 'data/repositories/safety_repository.dart';
 
@@ -25,16 +27,41 @@ class _CounselingReferralScreenState extends State<CounselingReferralScreen> {
   String _selectedUrgency = 'Normal';
   bool _isSubmitting = false;
 
-  // Dummy student data - TODO: Replace with API call
-  final List<Map<String, String>> _students = [
-    {'id': '1', 'name': 'John Doe', 'grade': '10th Grade'},
-    {'id': '2', 'name': 'Jane Smith', 'grade': '11th Grade'},
-    {'id': '3', 'name': 'Mike Johnson', 'grade': '9th Grade'},
-    {'id': '4', 'name': 'Sarah Wilson', 'grade': '12th Grade'},
-    {'id': '5', 'name': 'Alex Brown', 'grade': '10th Grade'},
-  ];
+  List<StudentResponse> _students = [];
+  bool _isLoadingStudents = true;
 
   final List<String> _urgencyLevels = ['Normal', 'Urgent'];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStudents();
+  }
+
+  void _fetchStudents() async {
+    try {
+      final studentRepository =
+          InjectorService.service.inject<StudentRepository>();
+      final result = await studentRepository.getAllStudents();
+      if (mounted) {
+        setState(() {
+          _students = result.content;
+          _isLoadingStudents = false;
+        });
+      }
+    } catch (e) {
+      Log.e("Failed to fetch students: $e");
+      if (mounted) {
+        setState(() {
+          _isLoadingStudents = false;
+        });
+        context.snackBar(
+          message: 'Failed to load students. Please try again.',
+          backgroundColor: Colors.red,
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -59,13 +86,13 @@ class _CounselingReferralScreenState extends State<CounselingReferralScreen> {
     try {
       final repository = InjectorService.service.inject<SafetyRepository>();
       final selectedStudentData = _students.firstWhere(
-        (s) => s['id'] == _selectedStudent,
+        (s) => s.id == _selectedStudent,
       );
 
       final request = CounselingReferralRequest(
         studentId: _selectedStudent!,
-        studentName: selectedStudentData['name']!,
-        classInfo: selectedStudentData['grade'],
+        studentName: selectedStudentData.fullName,
+        classInfo: selectedStudentData.currentClassId,
         reason: _reasonController.text,
         urgency: _selectedUrgency,
       );
@@ -138,51 +165,60 @@ class _CounselingReferralScreenState extends State<CounselingReferralScreen> {
                             style: AppStyles.medium.bold.white,
                           ),
                           const SizedBox(height: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _selectedStudent,
-                              decoration: const InputDecoration(
-                                labelText: 'Choose a student',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                              ),
-                              items: _students.map((student) {
-                                return DropdownMenuItem(
-                                  value: student['id'],
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        student['name']!,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        student['grade']!,
-                                        style:
-                                            AppStyles.small.regular.safetyGrey,
-                                      ),
-                                    ],
+                          _isLoadingStudents
+                              ? const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.whiteColor,
+                                    ),
                                   ),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedStudent = value;
-                                });
-                              },
-                            ),
-                          ),
+                                )
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: DropdownButtonFormField<String>(
+                                    initialValue: _selectedStudent,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Choose a student',
+                                      border: OutlineInputBorder(),
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                    ),
+                                    items: _students.map((student) {
+                                      return DropdownMenuItem(
+                                        value: student.id,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              student.fullName,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              student.rollNumber,
+                                              style: AppStyles
+                                                  .small.regular.safetyGrey,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedStudent = value;
+                                      });
+                                    },
+                                  ),
+                                ),
                           const SizedBox(height: 16),
 
                           // Reason Field

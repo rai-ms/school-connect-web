@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_management/core/base/logger/app_logger_impl.dart';
 import 'package:student_management/core/services/di/injector.dart';
@@ -305,19 +306,25 @@ class _EmergencyAlertsScreenState extends State<EmergencyAlertsScreen>
                       _EmergencyContact(
                         icon: Icons.phone,
                         title: 'School Security',
-                        number: '+1 (555) 123-4567',
+                        number: 'School Contact',
                       ),
                       const SizedBox(height: 8),
                       _EmergencyContact(
                         icon: Icons.local_police,
                         title: 'Local Police',
-                        number: '911',
+                        number: '100',
                       ),
                       const SizedBox(height: 8),
                       _EmergencyContact(
                         icon: Icons.medical_services,
                         title: 'Medical Emergency',
-                        number: '911',
+                        number: '108',
+                      ),
+                      const SizedBox(height: 8),
+                      _EmergencyContact(
+                        icon: Icons.fire_extinguisher,
+                        title: 'Fire Brigade',
+                        number: '101',
                       ),
                     ],
                   ),
@@ -342,6 +349,38 @@ class _EmergencyContact extends StatelessWidget {
   final String title;
   final String number;
 
+  void _makeCall(BuildContext context) async {
+    final uri = Uri.parse('tel:$number');
+    try {
+      const platform = MethodChannel('plugins.flutter.io/url_launcher_android');
+      await platform.invokeMethod('launch', <String, Object>{
+        'url': uri.toString(),
+        'useWebView': false,
+        'enableJavaScript': false,
+        'enableDomStorage': false,
+        'universalLinksOnly': false,
+        'headers': <String, String>{},
+      });
+    } catch (_) {
+      try {
+        const platformIos = MethodChannel('plugins.flutter.io/url_launcher_ios');
+        await platformIos.invokeMethod('launch', <String, Object>{
+          'url': uri.toString(),
+          'universalLinksOnly': false,
+        });
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Please call $number manually'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -361,9 +400,7 @@ class _EmergencyContact extends StatelessWidget {
           ),
         ),
         IconButton(
-          onPressed: () {
-            // TODO: Implement call functionality
-          },
+          onPressed: () => _makeCall(context),
           icon: const Icon(Icons.call, color: AppColors.whiteColor),
         ),
       ],

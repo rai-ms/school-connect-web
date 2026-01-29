@@ -32,20 +32,44 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
       FetchStudents event, Emitter<StudentState> emit) async {
     await _handler(
       apiCall: () async {
-        emit(state.copyWith(state: state.loading, event: event));
-        final students = await _repository.getAllStudents(
+        if (event.loadMore) {
+          emit(state.copyWith(isLoadingMore: true));
+        } else {
+          emit(state.copyWith(state: state.loading, event: event));
+        }
+        final result = await _repository.getAllStudents(
+          page: event.page,
+          size: event.size,
           classId: event.classId,
           search: event.search,
         );
-        emit(state.copyWith(state: state.success, students: students));
+        final updatedStudents = event.loadMore
+            ? [...state.students, ...result.content]
+            : result.content;
+        emit(state.copyWith(
+          state: state.success,
+          students: updatedStudents,
+          currentPage: result.number,
+          totalPages: result.totalPages,
+          hasMore: !result.last,
+          isLoadingMore: false,
+        ));
       },
       dioError: (e) {
         Log.e('Error fetching students: ${e.message}');
-        emit(state.copyWith(state: state.failed, error: e.message));
+        emit(state.copyWith(
+          state: state.failed,
+          error: e.message,
+          isLoadingMore: false,
+        ));
       },
       error: (e) {
         Log.e('Error fetching students: $e');
-        emit(state.copyWith(state: state.failed, error: e.toString()));
+        emit(state.copyWith(
+          state: state.failed,
+          error: e.toString(),
+          isLoadingMore: false,
+        ));
       },
     );
   }
@@ -76,10 +100,13 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
       apiCall: () async {
         emit(state.copyWith(state: state.loading, event: event));
         await _repository.createStudent(event.request);
-        final students = await _repository.getAllStudents();
+        final result = await _repository.getAllStudents();
         emit(state.copyWith(
             state: state.success,
-            students: students,
+            students: result.content,
+            currentPage: result.number,
+            totalPages: result.totalPages,
+            hasMore: !result.last,
             actionCompleted: true));
       },
       dioError: (e) {
@@ -122,10 +149,13 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
       apiCall: () async {
         emit(state.copyWith(state: state.loading, event: event));
         await _repository.deleteStudent(event.studentId);
-        final students = await _repository.getAllStudents();
+        final result = await _repository.getAllStudents();
         emit(state.copyWith(
             state: state.success,
-            students: students,
+            students: result.content,
+            currentPage: result.number,
+            totalPages: result.totalPages,
+            hasMore: !result.last,
             actionCompleted: true));
       },
       dioError: (e) {
@@ -145,7 +175,14 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
       apiCall: () async {
         emit(state.copyWith(state: state.loading, event: event));
         final students = await _repository.searchStudents(event.query);
-        emit(state.copyWith(state: state.success, students: students));
+        emit(state.copyWith(
+          state: state.success,
+          students: students,
+          currentPage: 0,
+          totalPages: 1,
+          hasMore: false,
+          isLoadingMore: false,
+        ));
       },
       dioError: (e) {
         Log.e('Error searching students: ${e.message}');
@@ -180,7 +217,14 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
       apiCall: () async {
         emit(state.copyWith(state: state.loading, event: event));
         final students = await _repository.getStudentsByClass(event.classId);
-        emit(state.copyWith(state: state.success, students: students));
+        emit(state.copyWith(
+          state: state.success,
+          students: students,
+          currentPage: 0,
+          totalPages: 1,
+          hasMore: false,
+          isLoadingMore: false,
+        ));
       },
       dioError: (e) {
         Log.e('Error fetching students by class: ${e.message}');

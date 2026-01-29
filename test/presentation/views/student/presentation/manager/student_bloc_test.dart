@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:student_management/core/base/paginated_response.dart';
 import 'package:student_management/core/handler/state_request_handler.dart';
 import 'package:student_management/presentation/views/student/data/models/student_model.dart';
 import 'package:student_management/presentation/views/student/data/repositories/student_repository.dart';
@@ -60,7 +61,7 @@ void main() {
         'emits loading then success with students when fetch succeeds',
         build: () {
           when(mockRepository.getAllStudents()).thenAnswer(
-            (_) async => testStudents,
+            (_) async => PaginatedResponse.fromList(testStudents),
           );
           return bloc;
         },
@@ -165,7 +166,7 @@ void main() {
             ),
           );
           when(mockRepository.getAllStudents()).thenAnswer(
-            (_) async => [...testStudents],
+            (_) async => PaginatedResponse.fromList([...testStudents]),
           );
           return bloc;
         },
@@ -187,7 +188,7 @@ void main() {
             (_) async {},
           );
           when(mockRepository.getAllStudents()).thenAnswer(
-            (_) async => [testStudents[1]],
+            (_) async => PaginatedResponse.fromList([testStudents[1]]),
           );
           return bloc;
         },

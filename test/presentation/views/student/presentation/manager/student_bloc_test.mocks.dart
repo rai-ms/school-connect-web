@@ -6,6 +6,7 @@
 import 'dart:async' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:student_management/core/base/paginated_response.dart' as _i5;
 import 'package:student_management/presentation/views/student/data/models/student_model.dart'
     as _i2;
 import 'package:student_management/presentation/views/student/data/repositories/student_repository.dart'
@@ -55,9 +56,9 @@ class MockStudentRepository extends _i1.Mock implements _i3.StudentRepository {
   }
 
   @override
-  _i4.Future<List<_i2.StudentResponse>> getAllStudents({
-    int? page,
-    int? size,
+  _i4.Future<_i5.PaginatedResponse<_i2.StudentResponse>> getAllStudents({
+    int page = 0,
+    int size = 20,
     String? classId,
     String? sectionId,
     String? status,
@@ -76,9 +77,10 @@ class MockStudentRepository extends _i1.Mock implements _i3.StudentRepository {
             #search: search,
           },
         ),
-        returnValue: _i4.Future<List<_i2.StudentResponse>>.value(
-            <_i2.StudentResponse>[]),
-      ) as _i4.Future<List<_i2.StudentResponse>>);
+        returnValue: _i4.Future<_i5.PaginatedResponse<_i2.StudentResponse>>.value(
+            _i5.PaginatedResponse<_i2.StudentResponse>.fromList(
+                <_i2.StudentResponse>[])),
+      ) as _i4.Future<_i5.PaginatedResponse<_i2.StudentResponse>>);
 
   @override
   _i4.Future<_i2.StudentResponse> getStudentById(String? studentId) =>

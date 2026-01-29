@@ -19,15 +19,30 @@ class StudentListPage extends StatefulWidget {
 
 class _StudentListPageState extends State<StudentListPage> {
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     context.read<StudentBloc>().add(const FetchStudents());
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = context.read<StudentBloc>().state;
+      if (state.hasMore && !state.isLoadingMore) {
+        context.read<StudentBloc>().add(
+              FetchStudents(page: state.currentPage + 1, loadMore: true),
+            );
+      }
+    }
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -125,10 +140,23 @@ class _StudentListPageState extends State<StudentListPage> {
                         .add(const FetchStudents());
                   },
                   child: ListView.builder(
+                    controller: _scrollController,
                     padding: AppPadding.padA16,
-                    itemCount: state.students.length,
-                    itemBuilder: (context, index) =>
-                        _buildStudentCard(state.students[index]),
+                    itemCount: state.students.length +
+                        (state.isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index >= state.students.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.safetyBlue,
+                            ),
+                          ),
+                        );
+                      }
+                      return _buildStudentCard(state.students[index]);
+                    },
                   ),
                 );
               },

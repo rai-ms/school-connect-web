@@ -61,7 +61,18 @@ class _LoginWidgetView
                     fontSize: 16,
                   ),
                 ),
-                Space.h20,
+                Space.h8,
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => context.push(RoutesName.forgotPassword),
+                    child: Text(
+                      "Forgot Password?",
+                      style: AppStyles.regular.regular.darkCharcoal.underlined,
+                    ),
+                  ),
+                ),
+                Space.h12,
                 BlocConsumer<LoginBloc, LoginState>(
                   listener: ctr._loginListner,
                   builder: (context, LoginState loginState) {

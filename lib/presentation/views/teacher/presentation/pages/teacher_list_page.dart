@@ -18,10 +18,31 @@ class TeacherListPage extends StatefulWidget {
 }
 
 class _TeacherListPageState extends State<TeacherListPage> {
+  final _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     context.read<TeacherBloc>().add(const FetchTeachers());
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final state = context.read<TeacherBloc>().state;
+      if (state.hasMore && !state.isLoadingMore) {
+        context.read<TeacherBloc>().add(
+              FetchTeachers(page: state.currentPage + 1, loadMore: true),
+            );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -67,10 +88,23 @@ class _TeacherListPageState extends State<TeacherListPage> {
               context.read<TeacherBloc>().add(const FetchTeachers());
             },
             child: ListView.builder(
+              controller: _scrollController,
               padding: AppPadding.padA16,
-              itemCount: state.teachers.length,
-              itemBuilder: (context, index) =>
-                  _buildTeacherCard(state.teachers[index]),
+              itemCount:
+                  state.teachers.length + (state.isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= state.teachers.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.safetyBlue,
+                      ),
+                    ),
+                  );
+                }
+                return _buildTeacherCard(state.teachers[index]);
+              },
             ),
           );
         },

@@ -26,4 +26,9 @@ abstract class ApiEndPoint {
 
   // Leave
   static const String pendingLeaveRequests = "api/leave/requests/pending";
+
+  // Auth - Password Management
+  static const String forgotPassword = "api/auth/forgot-password";
+  static const String resetPassword = "api/auth/reset-password";
+  static const String changePassword = "api/auth/change-password";
 }

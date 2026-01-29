@@ -5,9 +5,18 @@ class StudentEvent extends BlocEvent {
 }
 
 class FetchStudents extends StudentEvent {
+  final int page;
+  final int size;
+  final bool loadMore;
   final String? classId;
   final String? search;
-  const FetchStudents({this.classId, this.search});
+  const FetchStudents({
+    this.page = 0,
+    this.size = 20,
+    this.loadMore = false,
+    this.classId,
+    this.search,
+  });
 }
 
 class FetchStudentById extends StudentEvent {

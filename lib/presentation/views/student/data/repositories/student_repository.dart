@@ -1,9 +1,10 @@
 import 'package:injectable/injectable.dart';
+import 'package:student_management/core/base/paginated_response.dart';
 import 'package:student_management/core/services/api_service/api_dispatcher.dart';
 import '../models/student_model.dart';
 
 abstract class StudentRepository {
-  Future<List<StudentResponse>> getAllStudents({
+  Future<PaginatedResponse<StudentResponse>> getAllStudents({
     int page,
     int size,
     String? classId,
@@ -29,7 +30,7 @@ class StudentRepositoryImpl implements StudentRepository {
   StudentRepositoryImpl(this._apiDispatcher);
 
   @override
-  Future<List<StudentResponse>> getAllStudents({
+  Future<PaginatedResponse<StudentResponse>> getAllStudents({
     int page = 0,
     int size = 20,
     String? classId,
@@ -47,14 +48,17 @@ class StudentRepositoryImpl implements StudentRepository {
       type: RequestType.get,
       endPoint: 'api/students?${params.join('&')}',
     );
-    final data = response.data is Map
-        ? (response.data['content'] ?? [])
-        : response.data is List
-            ? response.data
-            : [];
-    return (data as List)
-        .map((e) => StudentResponse.fromJson(e))
-        .toList();
+    if (response.data is Map<String, dynamic>) {
+      return PaginatedResponse.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => StudentResponse.fromJson(json),
+      );
+    }
+    // Fallback for plain list responses
+    final data = response.data is List ? response.data as List : [];
+    return PaginatedResponse.fromList(
+      data.map((e) => StudentResponse.fromJson(e)).toList(),
+    );
   }
 
   @override
