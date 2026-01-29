@@ -252,8 +252,6 @@ Future<_i174.GetIt> injectAllData(
       () => _i750.AcademicCalendarRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.singleton<_i850.AssignmentRepository>(
       () => _i850.AssignmentRepositoryImpl(gh<_i896.ApiDispatcher>()));
-  gh.singleton<_i850.AssignmentRepository>(
-      () => _i850.AssignmentRepositoryImpl(gh<_i896.ApiDispatcher>()));
   gh.lazySingleton<_i1045.AppConfigRepo>(
       () => _i1013.AppConfigRepoImpl(gh<_i896.ApiDispatcher>()));
   gh.factory<_i737.ParentBloc>(() => _i737.ParentBloc(
@@ -331,10 +329,6 @@ Future<_i174.GetIt> injectAllData(
       ));
   gh.factory<_i751.CalendarBloc>(() => _i751.CalendarBloc(
         gh<_i750.AcademicCalendarRepository>(),
-        gh<_i140.StateRequestHandler>(),
-      ));
-  gh.factory<_i851.AssignmentBloc>(() => _i851.AssignmentBloc(
-        gh<_i850.AssignmentRepository>(),
         gh<_i140.StateRequestHandler>(),
       ));
   gh.factory<_i851.AssignmentBloc>(() => _i851.AssignmentBloc(

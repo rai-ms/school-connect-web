@@ -77,12 +77,6 @@ class _SchoolAdminDashboardState extends State<SchoolAdminDashboard> {
       'route': RoutesName.assignmentList,
     },
     {
-      'icon': Icons.assignment,
-      'label': 'Assignments',
-      'color': AppColors.safetyLightBlue,
-      'route': RoutesName.assignmentList,
-    },
-    {
       'icon': Icons.calendar_month,
       'label': 'Calendar',
       'color': AppColors.safetyBlue,
