@@ -32,7 +32,7 @@ const About = () => {
           {/* Content */}
           <div>
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-              About EduSmart360
+              About School Connect
             </h2>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
               We are a team of passionate ed-tech developers committed to transforming school management. 
@@ -40,7 +40,7 @@ const About = () => {
               tasks simpler and more efficient for educational institutions worldwide.
             </p>
             <p className="text-gray-600 mb-8 leading-relaxed">
-              Founded in 2020, EduSmart360 has grown from a small startup to a trusted partner for 
+              Founded in 2020, School Connect has grown from a small startup to a trusted partner for 
               over 500 educational institutions. Our comprehensive platform combines years of 
               educational expertise with modern technology to deliver solutions that truly make a difference.
             </p>

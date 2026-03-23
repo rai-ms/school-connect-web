@@ -6,8 +6,8 @@ const FAQ = () => {
 
   const faqs = [
     {
-      question: 'How secure is student data in EduSmart360?',
-      answer: 'We take data security extremely seriously. EduSmart360 uses enterprise-grade encryption, secure data centers, and complies with GDPR and other privacy regulations. All data is encrypted both in transit and at rest, and we conduct regular security audits to ensure your information remains protected.',
+      question: 'How secure is student data in School Connect?',
+      answer: 'We take data security extremely seriously. School Connect uses enterprise-grade encryption, secure data centers, and complies with GDPR and other privacy regulations. All data is encrypted both in transit and at rest, and we conduct regular security audits to ensure your information remains protected.',
     },
     {
       question: 'Can we add multiple school branches to our account?',
@@ -26,7 +26,7 @@ const FAQ = () => {
       answer: 'We provide comprehensive onboarding support including data migration assistance, staff training sessions, and dedicated customer success managers for Enterprise clients. Our support team is available via email, phone, and chat to help you every step of the way.',
     },
     {
-      question: 'Can we integrate EduSmart360 with our existing systems?',
+      question: 'Can we integrate School Connect with our existing systems?',
       answer: 'Yes, we offer API integrations and can work with your existing systems. Our Enterprise plan includes custom integrations, and we can connect with popular educational tools, payment gateways, and student information systems you may already be using.',
     },
     {
@@ -51,7 +51,7 @@ const FAQ = () => {
             Frequently Asked Questions
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Find answers to common questions about EduSmart360. Can't find what you're looking for? 
+            Find answers to common questions about School Connect. Can't find what you're looking for? 
             Contact our support team for personalized assistance.
           </p>
         </div>
@@ -98,7 +98,7 @@ const FAQ = () => {
               Still have questions?
             </h3>
             <p className="text-gray-600 mb-6">
-              Our support team is here to help you understand how EduSmart360 can work for your institution.
+              Our support team is here to help you understand how School Connect can work for your institution.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300 font-semibold">

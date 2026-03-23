@@ -34,7 +34,7 @@ const Contact = () => {
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Ready to transform your school management? Contact us today for a personalized demo 
-            and see how EduSmart360 can streamline your operations.
+            and see how School Connect can streamline your operations.
           </p>
         </div>
 

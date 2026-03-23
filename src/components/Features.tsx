@@ -62,7 +62,7 @@ const Features = () => {
             Everything You Need to Manage Your School
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            From attendance tracking to parent communication, EduSmart360 provides all the tools 
+            From attendance tracking to parent communication, School Connect provides all the tools 
             modern educational institutions need in one comprehensive platform.
           </p>
         </div>

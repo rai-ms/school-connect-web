@@ -7,7 +7,7 @@ const HowItWorks = () => {
       number: '01',
       icon: <Calendar className="w-8 h-8" />,
       title: 'Request a Demo',
-      description: 'Schedule a personalized demonstration of EduSmart360 tailored to your school\'s specific needs and requirements.',
+      description: 'Schedule a personalized demonstration of School Connect tailored to your school\'s specific needs and requirements.',
     },
     {
       number: '02',
@@ -75,7 +75,7 @@ const HowItWorks = () => {
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white max-w-3xl mx-auto">
             <h3 className="text-2xl font-bold mb-4">Ready to Transform Your School?</h3>
             <p className="text-blue-100 mb-6">
-              Join hundreds of educational institutions already using EduSmart360 to streamline their operations.
+              Join hundreds of educational institutions already using School Connect to streamline their operations.
             </p>
             <button className="bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors duration-300 font-semibold">
               Start Your Free Trial

@@ -97,7 +97,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick, isAuthenticated, onLogout
               <span className="text-white font-bold text-lg">E</span>
             </div>
             <span className="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-              EduSmart360
+              School Connect
             </span>
           </motion.div>
 

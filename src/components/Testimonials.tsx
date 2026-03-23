@@ -13,7 +13,7 @@ const Testimonials = () => {
       school: 'Green Valley High School',
       image: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2',
       rating: 5,
-      text: 'EduSmart360 has revolutionized how we manage our school. The parent communication features alone have saved us countless hours each week.',
+      text: 'School Connect has revolutionized how we manage our school. The parent communication features alone have saved us countless hours each week.',
     },
     {
       id: 2,
@@ -105,7 +105,7 @@ const Testimonials = () => {
             Trusted by Educational Leaders
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            See how EduSmart360 is helping schools worldwide improve their operations 
+            See how School Connect is helping schools worldwide improve their operations 
             and strengthen their community connections.
           </p>
         </div>
