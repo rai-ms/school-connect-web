@@ -1,98 +1,147 @@
-// Base API URL
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-
-// API Version
-const API_VERSION = 'v1';
+// Base API URL - uses Vite env variable
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://school-connect-6qt9.onrender.com/api';
 
 // Authentication Endpoints
 export const AUTH_ENDPOINTS = {
-  LOGIN: `${BASE_URL}/api/auth/login`,
-  REGISTER: `${BASE_URL}/api/auth/register`,
-  REFRESH_TOKEN: `${BASE_URL}/api/auth/refresh`,
-  LOGOUT: `${BASE_URL}/api/auth/logout`,
-  FORGOT_PASSWORD: `${BASE_URL}/api/auth/forgot-password`,
-  RESET_PASSWORD: `${BASE_URL}/api/auth/reset-password`,
-  VERIFY_EMAIL: `${BASE_URL}/api/auth/verify-email`,
-  RESEND_VERIFICATION: `${BASE_URL}/api/auth/resend-verification`,
-  CHANGE_PASSWORD: `${BASE_URL}/api/auth/change-password`,
-  VALIDATE_TOKEN: `${BASE_URL}/api/auth/validate-token`,
+  LOGIN: `${BASE_URL}/auth/login`,
+  REGISTER: `${BASE_URL}/auth/register`,
+  REFRESH_TOKEN: `${BASE_URL}/auth/refresh`,
+  LOGOUT: `${BASE_URL}/auth/logout`,
+  FORGOT_PASSWORD: `${BASE_URL}/auth/forgot-password`,
+  RESET_PASSWORD: `${BASE_URL}/auth/reset-password`,
+  VERIFY_EMAIL: `${BASE_URL}/auth/verify-email`,
+  CHANGE_PASSWORD: `${BASE_URL}/auth/change-password`,
 };
-
-
 
 // User Management Endpoints
 export const USER_ENDPOINTS = {
-  PROFILE: `${BASE_URL}/api/${API_VERSION}/users/profile`,
-  USERS: `${BASE_URL}/api/${API_VERSION}/users`,
-  ROLES: `${BASE_URL}/api/${API_VERSION}/users/roles`,
-  PERMISSIONS: `${BASE_URL}/api/${API_VERSION}/users/permissions`,
+  USERS: `${BASE_URL}/users`,
+  PROFILE: (userId: string) => `${BASE_URL}/users/${userId}`,
+  STATISTICS: `${BASE_URL}/users/statistics`,
 };
 
-// School Management Endpoints
-export const SCHOOL_ENDPOINTS = {
-  SCHOOLS: `${BASE_URL}/api/${API_VERSION}/schools`,
-  CLASSES: `${BASE_URL}/api/${API_VERSION}/schools/classes`,
-  SECTIONS: `${BASE_URL}/api/${API_VERSION}/schools/sections`,
-  SUBJECTS: `${BASE_URL}/api/${API_VERSION}/schools/subjects`,
+// Tenant/School Management Endpoints
+export const TENANT_ENDPOINTS = {
+  REGISTER: `${BASE_URL}/tenants/register`,
+  CURRENT: `${BASE_URL}/tenants/current`,
+  STATISTICS: `${BASE_URL}/tenants/statistics`,
+  SETTINGS: `${BASE_URL}/tenant/settings`,
+};
+
+// Super Admin Endpoints
+export const SUPER_ADMIN_ENDPOINTS = {
+  TENANTS: `${BASE_URL}/superadmin/tenants`,
+  TENANT_BY_ID: (id: string) => `${BASE_URL}/superadmin/tenants/${id}`,
+  ACTIVATE: (id: string) => `${BASE_URL}/superadmin/tenants/${id}/activate`,
+  SUSPEND: (id: string) => `${BASE_URL}/superadmin/tenants/${id}/suspend`,
+  SUBSCRIPTION: (id: string) => `${BASE_URL}/superadmin/tenants/${id}/subscription`,
+  GLOBAL_STATS: `${BASE_URL}/superadmin/tenants/statistics/global`,
 };
 
 // Student Management Endpoints
 export const STUDENT_ENDPOINTS = {
-  STUDENTS: `${BASE_URL}/api/${API_VERSION}/students`,
-  ATTENDANCE: `${BASE_URL}/api/${API_VERSION}/students/attendance`,
-  GRADES: `${BASE_URL}/api/${API_VERSION}/students/grades`,
+  STUDENTS: `${BASE_URL}/students`,
+  STUDENT_BY_ID: (id: string) => `${BASE_URL}/students/${id}`,
+  NEXT_ID: `${BASE_URL}/students/next-id`,
+  IMPORT: `${BASE_URL}/students/import`,
+  EXPORT: `${BASE_URL}/students/export`,
+  STATISTICS: `${BASE_URL}/students/statistics`,
 };
 
 // Teacher Management Endpoints
 export const TEACHER_ENDPOINTS = {
-  TEACHERS: `${BASE_URL}/api/${API_VERSION}/teachers`,
-  TIMETABLE: `${BASE_URL}/api/${API_VERSION}/teachers/timetable`,
-  ATTENDANCE: `${BASE_URL}/api/${API_VERSION}/teachers/attendance`,
+  TEACHERS: `${BASE_URL}/teachers`,
+  TEACHER_BY_ID: (id: string) => `${BASE_URL}/teachers/${id}`,
+  NEXT_ID: `${BASE_URL}/teachers/next-id`,
+  ASSIGNMENTS: `${BASE_URL}/teachers/assignments`,
 };
 
-// Parent Management Endpoints
-export const PARENT_ENDPOINTS = {
-  PARENTS: `${BASE_URL}/api/${API_VERSION}/parents`,
-  CHILDREN: `${BASE_URL}/api/${API_VERSION}/parents/children`,
+// Class/Section Management
+export const CLASS_ENDPOINTS = {
+  CLASSES: `${BASE_URL}/classes`,
+  CLASS_BY_ID: (id: string) => `${BASE_URL}/classes/${id}`,
+  SECTIONS: (classId: string) => `${BASE_URL}/classes/${classId}/sections`,
 };
 
-// Notice Board Endpoints
-export const NOTICE_ENDPOINTS = {
-  NOTICES: `${BASE_URL}/api/${API_VERSION}/notices`,
-  EVENTS: `${BASE_URL}/api/${API_VERSION}/events`,
+// Subject Management
+export const SUBJECT_ENDPOINTS = {
+  SUBJECTS: `${BASE_URL}/subjects`,
+  SUBJECT_BY_ID: (id: string) => `${BASE_URL}/subjects/${id}`,
 };
 
-// Settings Endpoints
-export const SETTINGS_ENDPOINTS = {
-  GENERAL: `${BASE_URL}/api/${API_VERSION}/settings/general`,
-  SCHOOL: `${BASE_URL}/api/${API_VERSION}/settings/school`,
-  EMAIL: `${BASE_URL}/api/${API_VERSION}/settings/email`,
+// Attendance
+export const ATTENDANCE_ENDPOINTS = {
+  ATTENDANCE: `${BASE_URL}/attendance`,
+  BULK: `${BASE_URL}/attendance/bulk`,
+  BY_CLASS: (classId: string) => `${BASE_URL}/attendance/class/${classId}`,
+  BY_STUDENT: (studentId: string) => `${BASE_URL}/attendance/student/${studentId}`,
 };
 
-// File Upload Endpoint
-export const FILE_UPLOAD = `${BASE_URL}/api/${API_VERSION}/upload`;
-
-// Export all endpoints as a single object for convenience
-export const API_ENDPOINTS = {
-  ...AUTH_ENDPOINTS,
-  ...USER_ENDPOINTS,
-  ...SCHOOL_ENDPOINTS,
-  ...STUDENT_ENDPOINTS,
-  ...TEACHER_ENDPOINTS,
-  ...PARENT_ENDPOINTS,
-  ...NOTICE_ENDPOINTS,
-  ...SETTINGS_ENDPOINTS,
-  FILE_UPLOAD,
+// Exam Management
+export const EXAM_ENDPOINTS = {
+  EXAMS: `${BASE_URL}/exams`,
+  EXAM_BY_ID: (id: string) => `${BASE_URL}/exams/${id}`,
+  TYPES: `${BASE_URL}/exams/types`,
+  MARKS: (examId: string) => `${BASE_URL}/exams/${examId}/marks`,
+  RESULTS: (examId: string) => `${BASE_URL}/exams/${examId}/results`,
 };
 
-export default {
-  BASE_URL,
-  API_VERSION,
-  ...API_ENDPOINTS,
+// Fee Management
+export const FEE_ENDPOINTS = {
+  TYPES: `${BASE_URL}/fees/types`,
+  STRUCTURE: `${BASE_URL}/fees/structure`,
+  PAYMENT: `${BASE_URL}/fees/payment`,
+  COLLECTION_REPORT: `${BASE_URL}/fees/report/collection`,
+  OVERDUE: `${BASE_URL}/fees/overdue`,
 };
 
+// Leave Management
+export const LEAVE_ENDPOINTS = {
+  TYPES: `${BASE_URL}/leave/types`,
+  REQUESTS: `${BASE_URL}/leave/requests`,
+  PENDING: `${BASE_URL}/leave/requests/pending`,
+  BALANCE: `${BASE_URL}/leave/balance`,
+};
 
+// Announcements
+export const ANNOUNCEMENT_ENDPOINTS = {
+  ANNOUNCEMENTS: `${BASE_URL}/announcements`,
+};
 
+// Timetable
+export const TIMETABLE_ENDPOINTS = {
+  PERIODS: `${BASE_URL}/timetable/periods`,
+  ENTRIES: `${BASE_URL}/timetable/entries`,
+  BY_CLASS: (classId: string) => `${BASE_URL}/timetable/class/${classId}`,
+};
 
-// Username: admin_user
-// Password: Admin@123
+// Analytics
+export const ANALYTICS_ENDPOINTS = {
+  DASHBOARD: `${BASE_URL}/analytics/dashboard`,
+  ATTENDANCE_TREND: `${BASE_URL}/analytics/attendance/trend`,
+  FEE_SUMMARY: `${BASE_URL}/analytics/fee/summary`,
+  STUDENT_DEMOGRAPHICS: `${BASE_URL}/analytics/student/demographics`,
+  EXAM_PERFORMANCE: `${BASE_URL}/analytics/exam/performance`,
+};
+
+// Master Data
+export const MASTER_DATA_ENDPOINTS = {
+  BY_CATEGORY: (category: string) => `${BASE_URL}/master-data?category=${category}`,
+  ALL: `${BASE_URL}/master-data/all`,
+  CREATE: `${BASE_URL}/master-data`,
+  UPDATE: (id: string) => `${BASE_URL}/master-data/${id}`,
+  DELETE: (id: string) => `${BASE_URL}/master-data/${id}`,
+};
+
+// Reports
+export const REPORT_ENDPOINTS = {
+  REPORT_CARD: (studentId: string) => `${BASE_URL}/reports/student/${studentId}/report-card`,
+  FEE_RECEIPT: (paymentId: string) => `${BASE_URL}/reports/fee-receipt/${paymentId}`,
+};
+
+// Config
+export const CONFIG_ENDPOINTS = {
+  MOBILE: `${BASE_URL}/config/mobile`,
+};
+
+export { BASE_URL };
