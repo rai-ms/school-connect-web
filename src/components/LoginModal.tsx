@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Lock, Mail, User, Users } from 'lucide-react';
+import axios from 'axios';
+import { AUTH_ENDPOINTS } from '../config/api.config';
 
-type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
+type UserRole = 'admin' | 'teacher' | 'student' | 'parent' | 'superadmin';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -10,9 +12,20 @@ interface LoginModalProps {
   onLoginSuccess: (role: UserRole) => void;
 }
 
+const mapBackendRole = (role: string): UserRole => {
+  const roleMap: Record<string, UserRole> = {
+    'SUPER_ADMIN': 'superadmin',
+    'ADMIN': 'admin',
+    'TEACHER': 'teacher',
+    'STUDENT': 'student',
+    'PARENT': 'parent',
+  };
+  return roleMap[role] || 'student';
+};
+
 const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
   const [formData, setFormData] = useState({
-    email: 'etetet',
+    email: '',
     password: '',
     rememberMe: false
   });
@@ -30,41 +43,47 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     // Basic validation
     if (!formData.email || !formData.password) {
-      setError('Please enter both email and password');
+      setError('Please enter both email/username and password');
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call with a small delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Simple demo logic - in a real app, this would come from the auth response
-      const email = formData.email.toLowerCase().trim();
-      let role: UserRole = 'student'; // Default to student
-      
-      if (email.includes('admin') || email.includes('superadmin')) {
-        role = 'admin';
-      } else if (email.includes('teacher')) {
-        role = 'teacher';
-      } else if (email.includes('parent')) {
-        role = 'parent';
-      }
-      
-      // For demo purposes, accept any non-empty password
-      if (formData.password.trim() === '') {
-        throw new Error('Password cannot be empty');
-      }
-      
+      const response = await axios.post(AUTH_ENDPOINTS.LOGIN, {
+        username: formData.email.trim(),
+        password: formData.password,
+      });
+
+      const data = response.data;
+
+      // Store auth data in localStorage
+      const token = data.token || data.accessToken || data.authToken || data.data?.token || data.data?.accessToken;
+      const refreshToken = data.refreshToken || data.data?.refreshToken || '';
+      const user = data.user || data.data?.user || data.data || {};
+      const role = mapBackendRole(user.role || data.role || '');
+      const userId = user.id || user.userId || data.userId || '';
+      const userName = user.fullName || user.name || user.username || formData.email;
+
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('userId', userId.toString());
+      localStorage.setItem('userRole', role);
+      localStorage.setItem('userName', userName);
+      localStorage.setItem('isAuthenticated', 'true');
+
       console.log('Login successful, calling onLoginSuccess with role:', role);
       onLoginSuccess(role);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'Invalid credentials. Please try again.');
+      const message = err?.response?.data?.message
+        || err?.response?.data?.error
+        || err?.message
+        || 'Invalid credentials. Please try again.';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -95,13 +114,6 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
           </div>
           <h2 className="mt-4 text-2xl font-bold text-gray-900">Welcome Back</h2>
           <p className="text-gray-600 mt-2">Sign in to your EduSmart360 account</p>
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <p>Demo accounts (any password works):</p>
-            <p className="font-mono text-xs mt-1">admin@school.com</p>
-            <p className="font-mono text-xs">teacher@school.com</p>
-            <p className="font-mono text-xs">parent@school.com</p>
-            <p className="font-mono text-xs">student@school.com</p>
-          </div>
         </div>
 
         {error && (

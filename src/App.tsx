@@ -98,6 +98,11 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 // Types
 type UserRole = 'admin' | 'teacher' | 'student' | 'parent' | 'superadmin';
 
+// Helper to get user display name from localStorage
+const getUserDisplayName = (): string => {
+  return localStorage.getItem('userName') || localStorage.getItem('userRole') || 'Admin';
+};
+
 // Public Layout Component
 const PublicLayout = ({ onLoginClick, isAuthenticated }: { onLoginClick: () => void, isAuthenticated: boolean }) => (
   <div className="min-h-screen bg-white font-inter">
@@ -170,7 +175,7 @@ const DashboardLayout = ({ onLogout }: { onLogout: () => void }) => {
               </svg>
             </button>
             <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-700">Welcome, Admin</span>
+              <span className="text-sm font-medium text-gray-700">Welcome, {getUserDisplayName()}</span>
               <button 
                 onClick={onLogout}
                 className="text-sm text-gray-600 hover:text-gray-900"
@@ -242,8 +247,9 @@ const DashboardLayout = ({ onLogout }: { onLogout: () => void }) => {
 function App() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Check if user is already logged in from localStorage
-    return localStorage.getItem('isAuthenticated') === 'true';
+    // Check if authToken exists in localStorage (not just isAuthenticated boolean)
+    const token = localStorage.getItem('authToken');
+    return !!token && localStorage.getItem('isAuthenticated') === 'true';
   });
   
   const handleLoginSuccess = (role: UserRole) => {
@@ -256,9 +262,13 @@ function App() {
   };
 
   const handleLogout = () => {
-    // Clear authentication state
+    // Clear all authentication data from localStorage
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
     setIsAuthenticated(false);
   };
 

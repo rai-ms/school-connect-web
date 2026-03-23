@@ -18,6 +18,8 @@ import {
   Person as PersonIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { SUPER_ADMIN_ENDPOINTS } from '../../../config/api.config';
 
 // Types
 export interface School {
@@ -34,24 +36,6 @@ export interface School {
   };
 }
 
-// Mock data - replace with actual API call
-const mockSchools: School[] = [
-  {
-    id: '1',
-    name: 'Delhi Public School',
-    schoolCode: 'DPS101',
-    board: 'CBSE',
-    city: 'New Delhi',
-    status: 'Active',
-    createdDate: '2023-05-15',
-    admin: {
-      name: 'Rahul Sharma',
-      email: 'admin@dps.com'
-    }
-  },
-  // Add more mock data as needed
-];
-
 const SchoolList: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -59,6 +43,7 @@ const SchoolList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [boardFilter, setBoardFilter] = useState<string>('All');
@@ -69,35 +54,63 @@ const SchoolList: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
 
-  // Fetch schools data (replace with actual API call)
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  // Fetch schools data from real API
+  const fetchSchools = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(SUPER_ADMIN_ENDPOINTS.TENANTS, {
+        headers: getAuthHeaders(),
+        params: {
+          page: page,
+          size: rowsPerPage,
+          ...(searchTerm ? { search: searchTerm } : {}),
+        },
+      });
+
+      const data = response.data?.data || response.data || {};
+      const content = data.content || data.tenants || data || [];
+      const schoolsArray = Array.isArray(content) ? content : [];
+
+      const mappedSchools: School[] = schoolsArray.map((tenant: any) => ({
+        id: tenant.id?.toString() || '',
+        name: tenant.name || tenant.schoolName || '',
+        schoolCode: tenant.identifier || tenant.schoolCode || tenant.code || '',
+        board: tenant.board || tenant.subscriptionPlan || 'N/A',
+        city: tenant.city || '',
+        status: (tenant.status === 'ACTIVE' || tenant.status === 'Active') ? 'Active' : 'Inactive',
+        createdDate: tenant.createdAt || tenant.createdDate || '',
+        admin: {
+          name: tenant.adminName || tenant.admin?.name || tenant.contactPerson || 'N/A',
+          email: tenant.email || tenant.admin?.email || tenant.contactEmail || 'N/A',
+        },
+      }));
+
+      setSchools(mappedSchools);
+      setTotalElements(data.totalElements ?? data.total ?? mappedSchools.length);
+    } catch (error) {
+      console.error('Error fetching schools:', error);
+      setSchools([]);
+      setTotalElements(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setSchools(mockSchools);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching schools:', error);
-        setLoading(false);
-      }
-    };
+    fetchSchools();
+  }, [page, rowsPerPage, searchTerm]);
 
-    fetchData();
-  }, []);
-
-  // Filter and sort schools
+  // Filter schools locally for status and board
   const filteredSchools = React.useMemo(() => {
     return schools.filter(school => {
-      const matchesSearch = 
-        school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        school.schoolCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        school.city.toLowerCase().includes(searchTerm.toLowerCase());
-      
       const matchesStatus = statusFilter === 'All' || school.status === statusFilter;
       const matchesBoard = boardFilter === 'All' || school.board === boardFilter;
-      
-      return matchesSearch && matchesStatus && matchesBoard;
+      return matchesStatus && matchesBoard;
     }).sort((a, b) => {
       if (a[sortConfig.key] < b[sortConfig.key]) {
         return sortConfig.direction === 'asc' ? -1 : 1;
@@ -107,7 +120,7 @@ const SchoolList: React.FC = () => {
       }
       return 0;
     });
-  }, [schools, searchTerm, statusFilter, boardFilter, sortConfig]);
+  }, [schools, statusFilter, boardFilter, sortConfig]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -136,51 +149,67 @@ const SchoolList: React.FC = () => {
   };
 
   const handleViewSchool = (school: School) => {
-    // Navigate to school details
     console.log('View school:', school);
   };
 
   const handleEditSchool = (school: School) => {
-    // Navigate to edit school
     console.log('Edit school:', school);
   };
 
-  const handleDeleteSchool = (school: School) => {
-    // Handle delete school
-    console.log('Delete school:', school);
+  const handleDeleteSchool = async (school: School) => {
+    if (!window.confirm(`Are you sure you want to delete "${school.name}"?`)) {
+      handleMenuClose();
+      return;
+    }
+    try {
+      await axios.delete(SUPER_ADMIN_ENDPOINTS.TENANT_BY_ID(school.id), {
+        headers: getAuthHeaders(),
+      });
+      fetchSchools();
+    } catch (error) {
+      console.error('Error deleting school:', error);
+      alert('Failed to delete school. Please try again.');
+    }
     handleMenuClose();
   };
 
-  const handleToggleStatus = (school: School) => {
-    // Toggle school status
-    console.log('Toggle status for school:', school);
+  const handleToggleStatus = async (school: School) => {
+    try {
+      const endpoint = school.status === 'Active'
+        ? SUPER_ADMIN_ENDPOINTS.SUSPEND(school.id)
+        : SUPER_ADMIN_ENDPOINTS.ACTIVATE(school.id);
+      await axios.post(endpoint, {}, { headers: getAuthHeaders() });
+      fetchSchools();
+    } catch (error) {
+      console.error('Error toggling school status:', error);
+      alert('Failed to update school status. Please try again.');
+    }
     handleMenuClose();
   };
 
   const handleLoginAsAdmin = (school: School) => {
-    // Handle login as admin
     console.log('Login as admin for school:', school);
     handleMenuClose();
   };
 
-  const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredSchools.length - page * rowsPerPage);
+  const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredSchools.length);
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" component="h1">
           Schools
-          <Chip 
-            label={`${filteredSchools.length} ${filteredSchools.length === 1 ? 'School' : 'Schools'}`} 
-            color="primary" 
-            size="small" 
+          <Chip
+            label={`${totalElements} ${totalElements === 1 ? 'School' : 'Schools'}`}
+            color="primary"
+            size="small"
             sx={{ ml: 2, fontWeight: 'bold' }}
           />
         </Typography>
-        
-        <Button 
-          variant="contained" 
-          color="primary" 
+
+        <Button
+          variant="contained"
+          color="primary"
           startIcon={<AddIcon />}
           onClick={() => navigate('/dashboard/schools/add', { replace: true })}>
           Add New School
@@ -195,7 +224,10 @@ const SchoolList: React.FC = () => {
             variant="outlined"
             size="small"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(0);
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -205,7 +237,7 @@ const SchoolList: React.FC = () => {
             }}
             sx={{ flex: 1, minWidth: 250 }}
           />
-          
+
           <TextField
             select
             label="Status"
@@ -220,7 +252,7 @@ const SchoolList: React.FC = () => {
               </MenuItem>
             ))}
           </TextField>
-          
+
           <TextField
             select
             label="Board"
@@ -235,12 +267,11 @@ const SchoolList: React.FC = () => {
               </MenuItem>
             ))}
           </TextField>
-          
-          <Button 
-            variant="outlined" 
+
+          <Button
+            variant="outlined"
             startIcon={<FilterListIcon />}
             onClick={() => {
-              // Handle advanced filters
               console.log('Advanced filters');
             }}
           >
@@ -280,16 +311,16 @@ const SchoolList: React.FC = () => {
                       No schools found
                     </Typography>
                     <Typography variant="body2" color="textSecondary" sx={{ mt: 1, mb: 2 }}>
-                      {searchTerm || statusFilter !== 'All' || boardFilter !== 'All' 
+                      {searchTerm || statusFilter !== 'All' || boardFilter !== 'All'
                         ? 'Try adjusting your search or filter criteria'
                         : 'Get started by adding a new school'}
                     </Typography>
                     {!searchTerm && statusFilter === 'All' && boardFilter === 'All' && (
-                      <Button 
-                        variant="contained" 
+                      <Button
+                        variant="contained"
                         color="primary"
                         startIcon={<AddIcon />}
-                        onClick={() => navigate('/super-admin/schools/add')}
+                        onClick={() => navigate('/dashboard/schools/add')}
                       >
                         Add New School
                       </Button>
@@ -297,12 +328,10 @@ const SchoolList: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredSchools
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((school) => (
-                    <TableRow 
+                filteredSchools.map((school) => (
+                    <TableRow
                       key={school.id}
-                      hover 
+                      hover
                       sx={{ '&:hover': { backgroundColor: 'action.hover', cursor: 'pointer' } }}
                       onClick={() => handleViewSchool(school)}
                     >
@@ -320,15 +349,15 @@ const SchoolList: React.FC = () => {
                       <TableCell>{school.schoolCode}</TableCell>
                       <TableCell>{school.board}</TableCell>
                       <TableCell>
-                        <Chip 
-                          label={school.status} 
-                          size="small" 
+                        <Chip
+                          label={school.status}
+                          size="small"
                           color={school.status === 'Active' ? 'success' : 'default'}
                           variant="outlined"
                         />
                       </TableCell>
                       <TableCell>
-                        {new Date(school.createdDate).toLocaleDateString()}
+                        {school.createdDate ? new Date(school.createdDate).toLocaleDateString() : 'N/A'}
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -357,26 +386,19 @@ const SchoolList: React.FC = () => {
                     </TableRow>
                   ))
               )}
-              {!loading && emptyRows > 0 && filteredSchools.length > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={7} />
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </TableContainer>
-        
-        {filteredSchools.length > 0 && (
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={filteredSchools.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        )}
+
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={totalElements}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </Paper>
 
       {/* Action Menu */}
@@ -411,7 +433,7 @@ const SchoolList: React.FC = () => {
           <PersonIcon fontSize="small" sx={{ mr: 1 }} />
           Login as Admin
         </MenuItem>
-        <MenuItem 
+        <MenuItem
           onClick={() => selectedSchool && handleDeleteSchool(selectedSchool)}
           sx={{ color: 'error.main' }}
         >
@@ -419,20 +441,6 @@ const SchoolList: React.FC = () => {
           Delete
         </MenuItem>
       </Menu>
-
-      {/* Floating Action Button */}
-      {/* <Fab
-        color="primary"
-        aria-label="add school"
-        sx={{
-          position: 'fixed',
-          bottom: 32,
-          right: 32,
-        }}
-        onClick={() => navigate('/super-admin/schools/add')}
-      >
-        <AddIcon />
-      </Fab> */}
     </Box>
   );
 };

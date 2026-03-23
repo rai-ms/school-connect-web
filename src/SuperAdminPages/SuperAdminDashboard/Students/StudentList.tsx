@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -23,6 +23,7 @@ import {
   FormControl,
   InputLabel,
   Select,
+  CircularProgress,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -34,25 +35,29 @@ import {
   FileDownload as ExportIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { STUDENT_ENDPOINTS } from '../../../config/api.config';
 
-// Mock data
-const mockStudents = Array.from({ length: 50 }, (_, i) => ({
-  id: `STU${1000 + i}`,
-  name: `Student ${i + 1}`,
-  rollNo: i + 1,
-  class: ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5'][Math.floor(Math.random() * 8)],
-  section: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
-  gender: ['Male', 'Female', 'Other'][Math.floor(Math.random() * 3)],
-  parentContact: `98765${Math.floor(10000 + Math.random() * 90000)}`,
-  status: Math.random() > 0.2 ? 'Active' : 'Inactive',
-  admissionDate: new Date(2023, 0, Math.floor(Math.random() * 365)).toISOString().split('T')[0],
-  avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`,
-}));
+interface Student {
+  id: string;
+  name: string;
+  rollNo: number | string;
+  class: string;
+  section: string;
+  gender: string;
+  parentContact: string;
+  status: string;
+  admissionDate: string;
+  avatar: string;
+}
 
 const StudentList: React.FC = () => {
   const navigate = useNavigate();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
@@ -62,6 +67,58 @@ const StudentList: React.FC = () => {
     gender: '',
     status: '',
   });
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(STUDENT_ENDPOINTS.STUDENTS, {
+        headers: getAuthHeaders(),
+        params: {
+          page: page,
+          size: rowsPerPage,
+          ...(searchTerm ? { search: searchTerm } : {}),
+          ...(filters.status ? { status: filters.status } : {}),
+          ...(filters.class ? { className: filters.class } : {}),
+          ...(filters.gender ? { gender: filters.gender } : {}),
+        },
+      });
+
+      const data = response.data?.data || response.data || {};
+      const content = data.content || data.students || data || [];
+      const studentsArray = Array.isArray(content) ? content : [];
+
+      const mappedStudents: Student[] = studentsArray.map((s: any) => ({
+        id: s.id?.toString() || s.studentId || '',
+        name: s.fullName || s.name || `${s.firstName || ''} ${s.lastName || ''}`.trim(),
+        rollNo: s.rollNo || s.rollNumber || s.admissionNumber || '',
+        class: s.className || s.class || s.grade || '',
+        section: s.section || s.sectionName || '',
+        gender: s.gender || '',
+        parentContact: s.parentContact || s.parentPhone || s.guardianPhone || s.phone || '',
+        status: s.status === 'ACTIVE' || s.status === 'Active' ? 'Active' : 'Inactive',
+        admissionDate: s.admissionDate || s.createdAt || '',
+        avatar: s.profilePhoto || s.avatar || '',
+      }));
+
+      setStudents(mappedStudents);
+      setTotalElements(data.totalElements ?? data.total ?? mappedStudents.length);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      setStudents([]);
+      setTotalElements(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, [page, rowsPerPage, searchTerm, filters]);
 
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
 
@@ -100,33 +157,26 @@ const StudentList: React.FC = () => {
     handleMenuClose();
   };
 
-  const handleDelete = (id: string) => {
-    console.log('Delete student:', id);
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this student?')) {
+      handleMenuClose();
+      return;
+    }
+    try {
+      await axios.delete(STUDENT_ENDPOINTS.STUDENT_BY_ID(id), {
+        headers: getAuthHeaders(),
+      });
+      fetchStudents();
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      alert('Failed to delete student. Please try again.');
+    }
     handleMenuClose();
   };
 
-  const filteredStudents = mockStudents.filter(student => {
-    const matchesSearch =
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.class.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesFilters = Object.entries(filters).every(([key, value]) => {
-      if (!value) return true;
-      return student[key as keyof typeof student] === value;
-    });
-
-    return matchesSearch && matchesFilters;
-  });
-
-  const paginatedStudents = filteredStudents.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
-
-  const uniqueClasses = [...new Set(mockStudents.map(s => s.class))];
-  const uniqueSections = [...new Set(mockStudents.map(s => s.section))];
-  const uniqueGenders = [...new Set(mockStudents.map(s => s.gender))];
+  const uniqueClasses = [...new Set(students.map(s => s.class).filter(Boolean))];
+  const uniqueSections = [...new Set(students.map(s => s.section).filter(Boolean))];
+  const uniqueGenders = [...new Set(students.map(s => s.gender).filter(Boolean))];
   const statuses = ['Active', 'Inactive'];
 
   return (
@@ -136,7 +186,7 @@ const StudentList: React.FC = () => {
         <Typography variant="h5">
           Students
           <Chip
-            label={`${filteredStudents.length} ${filteredStudents.length === 1 ? 'Student' : 'Students'}`}
+            label={`${totalElements} ${totalElements === 1 ? 'Student' : 'Students'}`}
             color="primary"
             size="small"
             sx={{ ml: 2, fontWeight: 'bold' }}
@@ -210,7 +260,14 @@ const StudentList: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedStudents.length ? paginatedStudents.map(student => (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                    <CircularProgress />
+                    <Typography variant="body2" sx={{ mt: 1 }}>Loading students...</Typography>
+                  </TableCell>
+                </TableRow>
+              ) : students.length > 0 ? students.map(student => (
                 <TableRow hover key={student.id}>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -224,7 +281,9 @@ const StudentList: React.FC = () => {
                       </Badge>
                       <Box>
                         <Typography variant="body2">{student.name}</Typography>
-                        <Typography variant="caption" color="text.secondary">{student.admissionDate}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {student.admissionDate ? new Date(student.admissionDate).toLocaleDateString() : ''}
+                        </Typography>
                       </Box>
                     </Box>
                   </TableCell>
@@ -267,7 +326,7 @@ const StudentList: React.FC = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredStudents.length}
+          count={totalElements}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

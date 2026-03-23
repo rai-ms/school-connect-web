@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { SUPER_ADMIN_ENDPOINTS } from '../../config/api.config';
+import { useNavigate } from 'react-router-dom';
 
 interface AdminUser {
   username: string;
@@ -73,9 +76,13 @@ const initialSchoolState: Omit<School, 'id'> = {
 };
 
 const AddSchoolForm: React.FC = () => {
+  const navigate = useNavigate();
   const [schools, setSchools] = useState<School[]>([]);
   const [newSchool, setNewSchool] = useState<Omit<School, 'id'>>(initialSchoolState);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
 
   useEffect(() => {
     console.log('SchoolDashboard mounted');
@@ -132,68 +139,103 @@ const AddSchoolForm: React.FC = () => {
     setEditingId(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setSubmitError('');
+    setSubmitSuccess('');
+
     // Required fields validation
     const requiredFields = [
       'name', 'email', 'phone', 'address', 'city', 'state', 'pincode',
       'contactEmail', 'contactPhone', 'schoolCode', 'board'
     ];
-    
+
     const missingFields = requiredFields.filter(field => !newSchool[field as keyof typeof newSchool]);
-    
+
     // Validate admin user fields
     const requiredAdminFields = ['username', 'email', 'fullName', 'password'];
     const missingAdminFields = requiredAdminFields.filter(
       field => !newSchool.adminUser[field as keyof AdminUser]
     );
-    
+
     if (missingFields.length > 0 || missingAdminFields.length > 0) {
       const missingFieldsList = [
         ...missingFields,
         ...missingAdminFields.map(field => `Admin ${field}`)
       ].join(', ');
-      
+
       alert(`Please fill in all required fields: ${missingFieldsList}`);
       return;
     }
-    
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newSchool.email)) {
       alert('Please enter a valid email address');
       return;
     }
-    
+
     // Validate contact phone
     const phoneRegex = /^[0-9\-+()\s]+$/;
     if (!phoneRegex.test(newSchool.phone) || !phoneRegex.test(newSchool.contactPhone)) {
       alert('Please enter a valid phone number');
       return;
     }
-    
-    // Update or add school
-    const updatedSchool = {
-      ...newSchool,
-      // Ensure all analytics fields are numbers
-      analytics: {
-        totalStudents: Number(newSchool.analytics?.totalStudents) || 0,
-        totalTeachers: Number(newSchool.analytics?.totalTeachers) || 0,
-        avgAttendance: Number(newSchool.analytics?.avgAttendance) || 0,
-        lastUpdated: new Date().toISOString()
-      },
-    };
-    
-    if (editingId !== null) {
-      setSchools(schools.map(school => 
-        school.id === editingId ? { ...updatedSchool, id: editingId } : school
-      ));
-    } else {
-      setSchools([...schools, { ...updatedSchool, id: Date.now() }]);
+
+    setIsSubmitting(true);
+
+    try {
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const requestBody = {
+        name: newSchool.name,
+        identifier: newSchool.schoolCode,
+        schoolCode: newSchool.schoolCode,
+        type: newSchool.type,
+        board: newSchool.board,
+        email: newSchool.email,
+        phone: newSchool.phone,
+        address: newSchool.address,
+        city: newSchool.city,
+        state: newSchool.state,
+        country: 'India',
+        pincode: newSchool.pincode,
+        contactEmail: newSchool.contactEmail,
+        contactPhone: newSchool.contactPhone,
+        website: newSchool.website || undefined,
+        establishedYear: newSchool.establishedYear,
+        principalName: newSchool.principalName || undefined,
+        totalClassrooms: newSchool.totalClassrooms || 0,
+        hasTransportation: newSchool.hasTransportation || false,
+        hasCafeteria: newSchool.hasCafeteria || false,
+        adminUser: {
+          username: newSchool.adminUser.username,
+          password: newSchool.adminUser.password,
+          email: newSchool.adminUser.email,
+          fullName: newSchool.adminUser.fullName,
+        },
+      };
+
+      await axios.post(SUPER_ADMIN_ENDPOINTS.TENANTS, requestBody, { headers });
+
+      setSubmitSuccess('School created successfully!');
+      resetForm();
+      // Navigate back to schools list after a brief delay
+      setTimeout(() => {
+        navigate('/dashboard/schools');
+      }, 1500);
+    } catch (error: any) {
+      console.error('Error creating school:', error);
+      const message = error?.response?.data?.message
+        || error?.response?.data?.error
+        || error?.message
+        || 'Failed to create school. Please try again.';
+      setSubmitError(message);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    resetForm();
   };
 
   const handleEdit = (school: School) => {
@@ -246,6 +288,18 @@ const AddSchoolForm: React.FC = () => {
     <div className="form-page">
       <div className="form-container">
         <h1>{editingId !== null ? 'Edit School' : 'Add New School'}</h1>
+
+        {submitError && (
+          <div style={{ padding: '12px', marginBottom: '16px', backgroundColor: '#fee2e2', color: '#dc2626', borderRadius: '8px', fontSize: '14px' }}>
+            {submitError}
+          </div>
+        )}
+        {submitSuccess && (
+          <div style={{ padding: '12px', marginBottom: '16px', backgroundColor: '#dcfce7', color: '#16a34a', borderRadius: '8px', fontSize: '14px' }}>
+            {submitSuccess}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
@@ -660,18 +714,19 @@ const AddSchoolForm: React.FC = () => {
           </div>
           
           <div className="form-actions">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn-primary"
+              disabled={isSubmitting}
               style={{
-                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
                 color: 'white',
                 border: 'none',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '0.5rem',
                 fontSize: '1rem',
                 fontWeight: '600',
-                cursor: 'pointer',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s ease-in-out',
                 boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.06)',
                 display: 'inline-flex',
@@ -679,14 +734,14 @@ const AddSchoolForm: React.FC = () => {
                 justifyContent: 'center',
                 gap: '0.5rem',
                 minWidth: '140px',
-            
+
               }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              {editingId !== null ? 'Update School' : 'Add School'}
+              {isSubmitting ? 'Submitting...' : editingId !== null ? 'Update School' : 'Add School'}
             </button>
             
             {editingId !== null && (
