@@ -94,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick, isAuthenticated, onLogout
             whileTap={{ scale: 0.98 }}
           >
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-lg">E</span>
+              <span className="text-white font-bold text-lg">SC</span>
             </div>
             <span className="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
               School Connect

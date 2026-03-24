@@ -1,6 +1,22 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, School, Users, Settings, LogOut, GraduationCap, UserPlus, BookOpen, BookOpenText, Bell, CalendarCheck, BookOpenCheck } from 'lucide-react';
+import {
+  LayoutDashboard, School, Users, Settings, LogOut, GraduationCap,
+  UserPlus, BookOpen, BookOpenText, Bell, CalendarCheck, BookOpenCheck,
+  CreditCard, FileText, Calendar, MessageSquare,
+} from 'lucide-react';
+
+type UserRole = 'superadmin' | 'admin' | 'teacher' | 'student' | 'parent';
+
+interface MenuItem {
+  key: string;
+  icon: React.ReactNode;
+  label: string;
+  path?: string;
+  exact?: boolean;
+  roles: UserRole[];
+  children?: { label: string; path: string }[];
+}
 
 interface DrawerProps {
   isOpen: boolean;
@@ -9,13 +25,8 @@ interface DrawerProps {
 }
 
 const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
-  const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({
-    schools: true,
-    students: true,
-    teachers: true,
-    classes: true,
-    subjects: true
-  });
+  const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({});
+  const userRole = (localStorage.getItem('userRole') || 'admin') as UserRole;
 
   const toggleItem = (key: string) => {
     setExpandedItems(prev => ({
@@ -24,155 +35,125 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
     }));
   };
 
-  const menuItems = [
-    { 
+  const allMenuItems: MenuItem[] = [
+    // -- Common --
+    {
       key: 'dashboard',
-      icon: <LayoutDashboard className="w-5 h-5" />, 
-      label: 'Dashboard', 
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      label: 'Dashboard',
       path: '/dashboard',
-      exact: true
+      exact: true,
+      roles: ['superadmin', 'admin', 'teacher', 'student', 'parent'],
     },
-    { 
+
+    // -- Super Admin only --
+    {
       key: 'schools',
-      icon: <School className="w-5 h-5" />, 
+      icon: <School className="w-5 h-5" />,
       label: 'Schools',
+      roles: ['superadmin'],
       children: [
-        { 
-          label: 'Add School', 
-          path: '/dashboard/schools/add' 
-        },
-        { 
-          label: 'View Schools', 
-          path: '/dashboard/schools' 
-        }
-      ]
+        { label: 'View Schools', path: '/dashboard/schools' },
+        { label: 'Add School', path: '/dashboard/schools/add' },
+      ],
     },
-    { 
+
+    // -- School Admin + Super Admin --
+    {
       key: 'students',
-      icon: <GraduationCap className="w-5 h-5" />, 
+      icon: <GraduationCap className="w-5 h-5" />,
       label: 'Students',
+      roles: ['superadmin', 'admin'],
       children: [
-        { 
-          label: 'Add Student', 
-          path: '/dashboard/students/add' 
-        },
-        { 
-          label: 'View Students', 
-          path: '/dashboard/students' 
-        }
-      ]
+        { label: 'View Students', path: '/dashboard/students' },
+        { label: 'Add Student', path: '/dashboard/students/add' },
+      ],
     },
-    { 
+    {
       key: 'teachers',
-      icon: <UserPlus className="w-5 h-5" />, 
+      icon: <UserPlus className="w-5 h-5" />,
       label: 'Teachers',
+      roles: ['superadmin', 'admin'],
       children: [
-        { 
-          label: 'Add Teacher', 
-          path: '/dashboard/teachers/add' 
-        },
-        { 
-          label: 'View Teachers', 
-          path: '/dashboard/teachers' 
-        }
-      ]
+        { label: 'View Teachers', path: '/dashboard/teachers' },
+        { label: 'Add Teacher', path: '/dashboard/teachers/add' },
+      ],
     },
-    { 
+    {
       key: 'classes',
-      icon: <BookOpen className="w-5 h-5" />, 
-      label: 'Class Management',
+      icon: <BookOpen className="w-5 h-5" />,
+      label: 'Classes',
+      roles: ['superadmin', 'admin'],
       children: [
-        { 
-          label: 'Add Class', 
-          path: '/dashboard/classes/add' 
-        },
-        { 
-          label: 'View Classes', 
-          path: '/dashboard/classes' 
-        },
-        { 
-          label: 'Class Schedule', 
-          path: '/dashboard/classes/schedule' 
-        }
-      ]
+        { label: 'View Classes', path: '/dashboard/classes' },
+        { label: 'Add Class', path: '/dashboard/classes/add' },
+        { label: 'Class Schedule', path: '/dashboard/classes/schedule' },
+      ],
     },
-    { 
-      key: 'attendance',
-      icon: <CalendarCheck className="w-5 h-5" />, 
-      label: 'Attendance',
-      children: [
-        { 
-          label: 'Mark Attendance', 
-          path: '/dashboard/attendance/mark' 
-        },
-        { 
-          label: 'View Attendance', 
-          path: '/dashboard/attendance' 
-        }
-      ]
-    },
-    { 
-      key: 'users',
-      icon: <Users className="w-5 h-5" />, 
-      label: 'Users', 
-      path: '/dashboard/users'
-    },
-    { 
+    {
       key: 'subjects',
-      icon: <BookOpenText className="w-5 h-5" />, 
-      label: 'Subject Management',
+      icon: <BookOpenText className="w-5 h-5" />,
+      label: 'Subjects',
+      roles: ['superadmin', 'admin'],
       children: [
-        { 
-          label: 'Add Subject', 
-          path: '/dashboard/subjects/add' 
-        },
-        { 
-          label: 'View Subjects', 
-          path: '/dashboard/subjects' 
-        }
-      ]
+        { label: 'View Subjects', path: '/dashboard/subjects' },
+        { label: 'Add Subject', path: '/dashboard/subjects/add' },
+      ],
     },
-    { 
-      key: 'notices',
-      icon: <Bell className="w-5 h-5" />, 
-      label: 'Notices',
+    {
+      key: 'users',
+      icon: <Users className="w-5 h-5" />,
+      label: 'Users',
+      path: '/dashboard/users',
+      roles: ['superadmin', 'admin'],
+    },
+
+    // -- Admin + Teacher --
+    {
+      key: 'attendance',
+      icon: <CalendarCheck className="w-5 h-5" />,
+      label: 'Attendance',
+      roles: ['superadmin', 'admin', 'teacher'],
       children: [
-        { 
-          label: 'View Notices', 
-          path: '/dashboard/notices' 
-        },
-        { 
-          label: 'Add Notice', 
-          path: '/dashboard/notices/add' 
-        }
-      ]
+        { label: 'Mark Attendance', path: '/dashboard/attendance/mark' },
+        { label: 'View Attendance', path: '/dashboard/attendance' },
+      ],
     },
-    { 
+    {
       key: 'exams',
-      icon: <BookOpenCheck className="w-5 h-5" />, 
-      label: 'Exam Management',
+      icon: <BookOpenCheck className="w-5 h-5" />,
+      label: 'Exams',
+      roles: ['superadmin', 'admin', 'teacher'],
       children: [
-        { 
-          label: 'Schedule Exam', 
-          path: '/dashboard/exams/schedule' 
-        },
-        { 
-          label: 'View Exams', 
-          path: '/dashboard/exams' 
-        },
-        { 
-          label: 'Exam Results', 
-          path: '/dashboard/exams/results' 
-        }
-      ]
+        { label: 'View Exams', path: '/dashboard/exams' },
+        { label: 'Schedule Exam', path: '/dashboard/exams/schedule' },
+        { label: 'Exam Results', path: '/dashboard/exams/results' },
+      ],
     },
-    { 
+    {
+      key: 'notices',
+      icon: <Bell className="w-5 h-5" />,
+      label: 'Notices',
+      roles: ['superadmin', 'admin', 'teacher', 'student', 'parent'],
+      children: [
+        { label: 'View Notices', path: '/dashboard/notices' },
+        ...((['superadmin', 'admin', 'teacher'] as UserRole[]).includes(userRole)
+          ? [{ label: 'Add Notice', path: '/dashboard/notices/add' }]
+          : []),
+      ],
+    },
+
+    // -- Settings (all logged-in roles) --
+    {
       key: 'settings',
-      icon: <Settings className="w-5 h-5" />, 
-      label: 'Settings', 
-      path: '/dashboard/settings' 
+      icon: <Settings className="w-5 h-5" />,
+      label: 'Settings',
+      path: '/dashboard/settings',
+      roles: ['superadmin', 'admin', 'teacher', 'student', 'parent'],
     },
   ];
+
+  const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
 
   return (
     <div 
@@ -184,9 +165,20 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       }}
     >
       <div className="flex flex-col h-full">
-        {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b border-gray-200">
+        {/* Logo + Role */}
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
           <h1 className="text-xl font-bold text-gray-800">School Connect</h1>
+          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+            userRole === 'superadmin' ? 'bg-purple-100 text-purple-700' :
+            userRole === 'admin' ? 'bg-blue-100 text-blue-700' :
+            userRole === 'teacher' ? 'bg-green-100 text-green-700' :
+            userRole === 'student' ? 'bg-orange-100 text-orange-700' :
+            'bg-gray-100 text-gray-700'
+          }`}>
+            {userRole === 'superadmin' ? 'Super Admin' :
+             userRole === 'admin' ? 'School Admin' :
+             userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+          </span>
         </div>
 
         {/* Navigation */}
@@ -231,7 +223,7 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
                                     : 'text-gray-600 hover:bg-gray-100'
                                 }`
                               }
-                              onClick={onClose}
+                              onClick={() => { if (window.innerWidth < 1024) onClose(); }}
                             >
                               <span className="truncate">{child.label}</span>
                             </NavLink>

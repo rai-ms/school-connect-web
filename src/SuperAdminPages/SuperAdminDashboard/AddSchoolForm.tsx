@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { SUPER_ADMIN_ENDPOINTS } from '../../config/api.config';
+import apiService from '../../service/apiService';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminUser {
@@ -185,9 +184,7 @@ const AddSchoolForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem('authToken');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      // apiService handles auth token automatically
 
       const requestBody = {
         name: newSchool.name,
@@ -218,7 +215,7 @@ const AddSchoolForm: React.FC = () => {
         },
       };
 
-      await axios.post(SUPER_ADMIN_ENDPOINTS.TENANTS, requestBody, { headers });
+      await apiService.post('/superadmin/tenants', requestBody);
 
       setSubmitSuccess('School created successfully!');
       resetForm();

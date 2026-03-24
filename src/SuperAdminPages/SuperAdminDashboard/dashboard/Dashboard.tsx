@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Users, GraduationCap, BookOpen, Bell, Building2 } from 'lucide-react';
+import { Users, GraduationCap, BookOpen, Building2, CalendarCheck, CreditCard } from 'lucide-react';
 import { StatsCard } from './components/StatsCard';
 import { AttendanceChart, PerformanceChart, FeeCollectionChart } from './components/Charts';
 import { RecentActivity } from './components/RecentActivity';
-import axios from 'axios';
-import { ANALYTICS_ENDPOINTS, SUPER_ADMIN_ENDPOINTS } from '../../../config/api.config';
+import apiService from '../../../service/apiService';
 
 interface DashboardStats {
   totalStudents: number;
   totalTeachers: number;
   totalClasses: number;
-  activeNotices: number;
+  todayAttendance: number;
+  pendingFees: number;
   totalSchools: number;
 }
 
@@ -19,34 +19,39 @@ export const Dashboard = () => {
     totalStudents: 0,
     totalTeachers: 0,
     totalClasses: 0,
-    activeNotices: 0,
+    todayAttendance: 0,
+    pendingFees: 0,
     totalSchools: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const token = localStorage.getItem('authToken');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const role = localStorage.getItem('userRole');
+      const isSuperAdmin = role === 'superadmin';
 
       try {
-        const [analyticsRes, tenantsRes] = await Promise.allSettled([
-          axios.get(ANALYTICS_ENDPOINTS.DASHBOARD, { headers }),
-          axios.get(SUPER_ADMIN_ENDPOINTS.TENANTS, { headers, params: { page: 0, size: 1 } }),
-        ]);
+        const promises: Promise<any>[] = [
+          apiService.get('/analytics/dashboard'),
+        ];
+        if (isSuperAdmin) {
+          promises.push(apiService.get('/superadmin/tenants', { params: { page: 0, size: 1 } }));
+        }
 
+        const results = await Promise.allSettled(promises);
         let dashStats: Partial<DashboardStats> = {};
 
-        if (analyticsRes.status === 'fulfilled') {
-          const data = analyticsRes.value.data?.data || analyticsRes.value.data || {};
+        if (results[0].status === 'fulfilled') {
+          const data = results[0].value?.data || results[0].value || {};
           dashStats.totalStudents = data.totalStudents ?? data.students ?? 0;
           dashStats.totalTeachers = data.totalTeachers ?? data.teachers ?? 0;
           dashStats.totalClasses = data.totalClasses ?? data.classes ?? 0;
-          dashStats.activeNotices = data.activeNotices ?? data.notices ?? 0;
+          dashStats.todayAttendance = data.todayAttendancePercentage ?? 0;
+          dashStats.pendingFees = data.pendingFeeAmount ?? 0;
         }
 
-        if (tenantsRes.status === 'fulfilled') {
-          const data = tenantsRes.value.data?.data || tenantsRes.value.data || {};
+        if (isSuperAdmin && results[1]?.status === 'fulfilled') {
+          const data = results[1].value?.data || results[1].value || {};
           dashStats.totalSchools = data.totalElements ?? data.total ?? 0;
         }
 
@@ -87,34 +92,35 @@ export const Dashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {localStorage.getItem('userRole') === 'superadmin' && (
+          <StatsCard
+            title="Total Schools"
+            value={loading ? '...' : stats.totalSchools.toLocaleString()}
+            icon={<Building2 className="h-5 w-5" />}
+          />
+        )}
         <StatsCard
           title="Total Students"
           value={loading ? '...' : stats.totalStudents.toLocaleString()}
           icon={<Users className="h-5 w-5" />}
-          trend={0}
-          trendLabel=""
         />
         <StatsCard
           title="Total Teachers"
           value={loading ? '...' : stats.totalTeachers.toLocaleString()}
           icon={<GraduationCap className="h-5 w-5" />}
-          trend={0}
-          trendLabel=""
         />
         <StatsCard
-          title="Total Classes"
-          value={loading ? '...' : stats.totalClasses.toLocaleString()}
-          icon={<BookOpen className="h-5 w-5" />}
-          trend={0}
-          trendLabel=""
+          title="Today's Attendance"
+          value={loading ? '...' : `${stats.todayAttendance}%`}
+          icon={<CalendarCheck className="h-5 w-5" />}
         />
-        <StatsCard
-          title="Total Schools"
-          value={loading ? '...' : stats.totalSchools.toLocaleString()}
-          icon={<Building2 className="h-5 w-5" />}
-          trend={0}
-          trendLabel=""
-        />
+        {localStorage.getItem('userRole') !== 'superadmin' && (
+          <StatsCard
+            title="Pending Fees"
+            value={loading ? '...' : `₹${stats.pendingFees.toLocaleString('en-IN')}`}
+            icon={<CreditCard className="h-5 w-5" />}
+          />
+        )}
       </div>
 
       {/* Charts Section */}

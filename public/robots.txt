@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+
+Sitemap: https://school-connect-web-curm.onrender.com/sitemap.xml

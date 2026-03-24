@@ -74,8 +74,8 @@ const RequestDemoModal: React.FC<RequestDemoModalProps> = ({ isOpen, onClose }) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center px-4">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
+    <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4" onClick={onClose}>
+      <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md relative" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           className="absolute top-2 right-3 text-gray-600 hover:text-red-500 text-xl"

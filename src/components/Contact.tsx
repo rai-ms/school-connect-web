@@ -129,8 +129,8 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-1">Email Support</h4>
-                  <a href="mailto:support@edusmart360.com" className="text-blue-600 hover:text-blue-700 transition-colors">
-                    support@edusmart360.com
+                  <a href="mailto:support@schoolconnect.com" className="text-blue-600 hover:text-blue-700 transition-colors">
+                    support@schoolconnect.com
                   </a>
                   <p className="text-gray-600 text-sm mt-1">We typically respond within 24 hours</p>
                 </div>

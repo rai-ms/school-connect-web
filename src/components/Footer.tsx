@@ -12,7 +12,7 @@ const Footer = () => {
           <div className="md:col-span-1">
             <div className="flex items-center space-x-2 mb-6">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">E</span>
+                <span className="text-white font-bold text-sm">SC</span>
               </div>
               <span className="text-xl font-bold">School Connect</span>
             </div>
@@ -69,8 +69,8 @@ const Footer = () => {
                 <Mail className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-gray-400 text-sm">Email</p>
-                  <a href="mailto:support@edusmart360.com" className="text-white hover:text-blue-400 transition-colors">
-                    support@edusmart360.com
+                  <a href="mailto:support@schoolconnect.com" className="text-white hover:text-blue-400 transition-colors">
+                    support@schoolconnect.com
                   </a>
                 </div>
               </div>

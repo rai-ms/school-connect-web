@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Paper, Divider, Button, Grid, Card, CardContent,
-  Chip, Avatar, List, ListItem, ListItemText, ListItemAvatar, CircularProgress
+  Chip, Avatar, List, ListItem, ListItemText, ListItemAvatar, CircularProgress,
+  IconButton,
 } from '@mui/material';
 import { Edit as EditIcon, ArrowBack as ArrowBackIcon, People as PeopleIcon } from '@mui/icons-material';
-import { classAPI } from './classAPI';
-import { ClassData } from './types';
+import classAPI, { ClassData } from './classAPI';
 
 const ViewClass: React.FC = () => {
   const { id } = useParams<{ id: string }>();

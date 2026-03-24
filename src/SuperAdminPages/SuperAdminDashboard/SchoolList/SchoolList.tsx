@@ -18,8 +18,7 @@ import {
   Person as PersonIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { SUPER_ADMIN_ENDPOINTS } from '../../../config/api.config';
+import apiService from '../../../service/apiService';
 
 // Types
 export interface School {
@@ -54,17 +53,11 @@ const SchoolList: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('authToken');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
-
   // Fetch schools data from real API
   const fetchSchools = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(SUPER_ADMIN_ENDPOINTS.TENANTS, {
-        headers: getAuthHeaders(),
+      const response = await apiService.get('/superadmin/tenants', {
         params: {
           page: page,
           size: rowsPerPage,
@@ -72,7 +65,7 @@ const SchoolList: React.FC = () => {
         },
       });
 
-      const data = response.data?.data || response.data || {};
+      const data = response?.data || response || {};
       const content = data.content || data.tenants || data || [];
       const schoolsArray = Array.isArray(content) ? content : [];
 
@@ -162,9 +155,7 @@ const SchoolList: React.FC = () => {
       return;
     }
     try {
-      await axios.delete(SUPER_ADMIN_ENDPOINTS.TENANT_BY_ID(school.id), {
-        headers: getAuthHeaders(),
-      });
+      await apiService.delete(`/superadmin/tenants/${school.id}`);
       fetchSchools();
     } catch (error) {
       console.error('Error deleting school:', error);
@@ -175,10 +166,8 @@ const SchoolList: React.FC = () => {
 
   const handleToggleStatus = async (school: School) => {
     try {
-      const endpoint = school.status === 'Active'
-        ? SUPER_ADMIN_ENDPOINTS.SUSPEND(school.id)
-        : SUPER_ADMIN_ENDPOINTS.ACTIVATE(school.id);
-      await axios.post(endpoint, {}, { headers: getAuthHeaders() });
+      const action = school.status === 'Active' ? 'suspend' : 'activate';
+      await apiService.post(`/superadmin/tenants/${school.id}/${action}`);
       fetchSchools();
     } catch (error) {
       console.error('Error toggling school status:', error);

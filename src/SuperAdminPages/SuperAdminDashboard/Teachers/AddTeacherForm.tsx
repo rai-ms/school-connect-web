@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   Box,
   Button,
   Paper,
@@ -19,7 +19,9 @@ import {
   FormHelperText,
   CircularProgress,
   Avatar,
-  IconButton
+  IconButton,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   AddPhotoAlternate as AddPhotoIcon,
@@ -27,82 +29,77 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   Add as AddIcon,
+  Badge as BadgeIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { TeacherFormData } from './types/teacher.types';
 import { teacherAPI } from './api/teacherAPI';
+import apiService from '../../../service/apiService';
 
-// Mock data for select options
-const QUALIFICATIONS = [
-  'B.Ed',
-  'M.Ed',
-  'B.Sc',
-  'M.Sc',
-  'B.A',
-  'M.A',
-  'Ph.D',
-  'Other',
-];
+// Fallback if master data not seeded yet
+const FALLBACK_QUALIFICATIONS = ['B.Ed', 'M.Ed', 'B.Sc', 'M.Sc', 'B.A', 'M.A', 'Ph.D', 'D.El.Ed', 'B.Tech', 'M.Tech', 'B.Com', 'M.Com', 'MBA', 'Other'];
+const FALLBACK_SUBJECTS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Hindi', 'Sanskrit', 'History', 'Geography', 'Political Science', 'Economics', 'Business Studies', 'Accountancy', 'Computer Science', 'Physical Education', 'Art', 'Music'];
 
-// Mock subjects data
-const SUBJECTS = [
-  'Mathematics',
-  'Physics',
-  'Chemistry',
-  'Biology',
-  'English',
-  'Hindi',
-  'Sanskrit',
-  'History',
-  'Geography',
-  'Political Science',
-  'Economics',
-  'Business Studies',
-  'Accountancy',
-  'Computer Science',
-  'Physical Education',
-];
-
-// Classes and sections constants are currently not in use
-// const CLASSES = [
-//   'Nursery',
-//   'LKG',
-//   'UKG',
-//   '1',
-//   '2',
-//   '3',
-//   '4',
-//   '5',
-//   '6',
-//   '7',
-//   '8',
-//   '9',
-//   '10',
-//   '11',
-//   '12',
-// ];
-
-// const SECTIONS = ['A', 'B', 'C', 'D'];
-
-// Class sections generation commented out as it's not currently used
-// const generateClassSections = () => {
-//   const sections: string[] = [];
-//   CLASSES.forEach(cls => {
-//     SECTIONS.forEach(section => {
-//       sections.push(`${cls}-${section}`);
-//     });
-//   });
-//   return sections;
-// };
-// const CLASS_SECTIONS = generateClassSections();
+interface MasterDataItem {
+  id: string;
+  name: string;
+  code?: string;
+}
 
 const AddTeacherForm: React.FC = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [documentPreviews, setDocumentPreviews] = useState<Array<{ file: File; preview: string }>>([]);
+  const [employeeId, setEmployeeId] = useState('');
+  const [designations, setDesignations] = useState<MasterDataItem[]>([]);
+  const [departments, setDepartments] = useState<MasterDataItem[]>([]);
+  const [employeeTypes, setEmployeeTypes] = useState<MasterDataItem[]>([]);
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [qualifications, setQualifications] = useState<string[]>([]);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+
+  // Fetch master data + next employee ID
+  useEffect(() => {
+    const extract = (res: any) => {
+      if (res.status !== 'fulfilled') return [];
+      const data = res.value?.data || res.value || [];
+      return Array.isArray(data) ? data.map((d: any) => ({ id: d.id || d.value || d.code, name: d.label || d.name || d.value || '', code: d.value || d.code })) : [];
+    };
+
+    const fetchMasterData = async () => {
+      try {
+        const [nextIdRes, desigRes, deptRes, empTypeRes, subjectRes, qualRes] = await Promise.allSettled([
+          apiService.get('/teachers/next-id'),
+          apiService.get('/master-data?category=DESIGNATION'),
+          apiService.get('/master-data?category=DEPARTMENT'),
+          apiService.get('/master-data?category=EMPLOYEE_TYPE'),
+          apiService.get('/master-data?category=SUBJECT_TYPE'),
+          apiService.get('/master-data?category=QUALIFICATION'),
+        ]);
+        if (nextIdRes.status === 'fulfilled') {
+          const id = nextIdRes.value?.data?.employeeId || nextIdRes.value?.employeeId || '';
+          setEmployeeId(id);
+        }
+        setDesignations(extract(desigRes));
+        setDepartments(extract(deptRes));
+        setEmployeeTypes(extract(empTypeRes));
+
+        const subjectItems = extract(subjectRes);
+        setSubjects(subjectItems.length > 0 ? subjectItems.map(s => s.name) : FALLBACK_SUBJECTS);
+
+        const qualItems = extract(qualRes);
+        setQualifications(qualItems.length > 0 ? qualItems.map(q => q.name) : FALLBACK_QUALIFICATIONS);
+      } catch (err) {
+        console.error('Error fetching master data:', err);
+        setSubjects(FALLBACK_SUBJECTS);
+        setQualifications(FALLBACK_QUALIFICATIONS);
+      }
+    };
+    fetchMasterData();
+  }, []);
 
   // Form validation schema
   const validationSchema = Yup.object({
@@ -152,6 +149,9 @@ const AddTeacherForm: React.FC = () => {
       alternatePhone: '',
       dateOfBirth: '',
       gender: 'Male',
+      designation: '',
+      department: '',
+      employeeType: '',
       qualification: '',
       experience: 0,
       specialization: [],
@@ -164,7 +164,7 @@ const AddTeacherForm: React.FC = () => {
       status: 'Active',
       password: '',
       confirmPassword: '',
-    },
+    } as any,
     validationSchema,
     onSubmit: async (values) => {
       try {
@@ -193,15 +193,12 @@ const AddTeacherForm: React.FC = () => {
           });
         }
         
-        // Call API to create teacher
         await teacherAPI.createTeacher(formData);
-        
-        // Show success message
-        // navigate('/dashboard/teachers');
-        console.log('Teacher created successfully');
-      } catch (error) {
+        setSnackbar({ open: true, message: 'Teacher created successfully!', severity: 'success' });
+        setTimeout(() => navigate('/dashboard/teachers'), 1500);
+      } catch (error: any) {
         console.error('Error creating teacher:', error);
-        // Handle error (show error message)
+        setSnackbar({ open: true, message: error?.message || 'Failed to create teacher', severity: 'error' });
       } finally {
         setIsSubmitting(false);
       }
@@ -257,11 +254,43 @@ const AddTeacherForm: React.FC = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
-        <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 4, color: 'primary.main' }}>
-          Add New Teacher
-        </Typography>
-        
-        <Paper elevation={2} sx={{ p: 4, borderRadius: 2, mb: 4 }}>
+        {/* Header with gradient */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            mb: 3,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #1e3a5f 0%, #3b82f6 100%)',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Box>
+            <Typography variant="h5" fontWeight={700}>Add New Teacher</Typography>
+            <Typography variant="body2" sx={{ opacity: 0.85, mt: 0.5 }}>
+              Fill in the details below to register a new teacher
+            </Typography>
+          </Box>
+          {employeeId && (
+            <Chip
+              icon={<BadgeIcon sx={{ color: 'white !important' }} />}
+              label={`ID: ${employeeId}`}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                height: 36,
+                '& .MuiChip-icon': { color: 'white' },
+              }}
+            />
+          )}
+        </Paper>
+
+        <Paper elevation={1} sx={{ p: 4, borderRadius: 3, mb: 4 }}>
           <form onSubmit={formik.handleSubmit}>
             {/* Profile Photo Section */}
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
@@ -325,6 +354,7 @@ const AddTeacherForm: React.FC = () => {
               <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2, color: 'text.primary' }}>
                 Personal Information
               </Typography>
+
               <Divider sx={{ mb: 3 }} />
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -411,6 +441,117 @@ const AddTeacherForm: React.FC = () => {
               </Box>
             </Box>
             
+            {/* Employment Details Section */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
+                Employment Details
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    {designations.length > 0 ? (
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Designation</InputLabel>
+                        <Select
+                          name="designation"
+                          value={formik.values.designation || ''}
+                          onChange={formik.handleChange}
+                          label="Designation"
+                        >
+                          {designations.map(d => (
+                            <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    ) : (
+                      <TextField
+                        fullWidth size="small"
+                        name="designation"
+                        label="Designation"
+                        placeholder="e.g. Senior Teacher, HOD, Principal"
+                        value={formik.values.designation || ''}
+                        onChange={formik.handleChange}
+                      />
+                    )}
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    {departments.length > 0 ? (
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Department</InputLabel>
+                        <Select
+                          name="department"
+                          value={formik.values.department || ''}
+                          onChange={formik.handleChange}
+                          label="Department"
+                        >
+                          {departments.map(d => (
+                            <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    ) : (
+                      <TextField
+                        fullWidth size="small"
+                        name="department"
+                        label="Department"
+                        placeholder="e.g. Science, Arts, Commerce"
+                        value={formik.values.department || ''}
+                        onChange={formik.handleChange}
+                      />
+                    )}
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    {employeeTypes.length > 0 ? (
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Employee Type</InputLabel>
+                        <Select
+                          name="employeeType"
+                          value={formik.values.employeeType || ''}
+                          onChange={formik.handleChange}
+                          label="Employee Type"
+                        >
+                          {employeeTypes.map(d => (
+                            <MenuItem key={d.id} value={d.name}>{d.name}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    ) : (
+                      <TextField
+                        fullWidth size="small"
+                        name="employeeType"
+                        label="Employee Type"
+                        placeholder="e.g. Permanent, Contractual, Part-time"
+                        value={formik.values.employeeType || ''}
+                        onChange={formik.handleChange}
+                      />
+                    )}
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <DatePicker
+                      label="Joining Date"
+                      value={formik.values.joiningDate ? new Date(formik.values.joiningDate) : null}
+                      onChange={(date) => {
+                        formik.setFieldValue('joiningDate', date ? date.toISOString().split('T')[0] : '');
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          size: 'small',
+                          error: formik.touched.joiningDate && Boolean(formik.errors.joiningDate),
+                          helperText: formik.touched.joiningDate && (formik.errors.joiningDate as string),
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+
             {/* Contact Information Section */}
             <Box sx={{ mb: 4 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2, color: 'text.primary' }}>
@@ -495,7 +636,7 @@ const AddTeacherForm: React.FC = () => {
                         onBlur={formik.handleBlur}
                         label="Highest Qualification"
                       >
-                        {QUALIFICATIONS.map((qual) => (
+                        {qualifications.map((qual) => (
                           <MenuItem key={qual} value={qual}>
                             {qual}
                           </MenuItem>
@@ -554,7 +695,7 @@ const AddTeacherForm: React.FC = () => {
                           </Box>
                         )}
                       >
-                        {SUBJECTS.map((subject) => (
+                        {subjects.map((subject) => (
                           <MenuItem key={subject} value={subject}>
                             {subject}
                           </MenuItem>
@@ -567,46 +708,40 @@ const AddTeacherForm: React.FC = () => {
                   </Box>
                 </Box>
                 
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 2 }}>
-                  <Box sx={{ flex: 1, minWidth: { md: 'calc(50% - 8px)' } }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formik.values.isClassTeacher}
-                          onChange={formik.handleChange}
-                          name="isClassTeacher"
-                          color="primary"
-                        />
-                      }
-                      label="Is Class Teacher?"
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: { md: 'calc(50% - 8px)' } }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formik.values.transportAssigned}
-                          onChange={formik.handleChange}
-                          name="transportAssigned"
-                          color="primary"
-                        />
-                      }
-                      label="Transport Assigned"
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1, minWidth: { md: 'calc(50% - 8px)' } }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formik.values.hostelAssigned}
-                          onChange={formik.handleChange}
-                          name="hostelAssigned"
-                          color="primary"
-                        />
-                      }
-                      label="Hostel Assigned"
-                    />
-                  </Box>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formik.values.isClassTeacher}
+                        onChange={formik.handleChange}
+                        name="isClassTeacher"
+                        color="primary"
+                      />
+                    }
+                    label="Is Class Teacher?"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formik.values.transportAssigned}
+                        onChange={formik.handleChange}
+                        name="transportAssigned"
+                        color="primary"
+                      />
+                    }
+                    label="Transport Assigned"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formik.values.hostelAssigned}
+                        onChange={formik.handleChange}
+                        name="hostelAssigned"
+                        color="primary"
+                      />
+                    }
+                    label="Hostel Assigned"
+                  />
                 </Box>
               </Box>
             </Box>
@@ -725,6 +860,16 @@ const AddTeacherForm: React.FC = () => {
           </form>
         </Paper>
       </Box>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </LocalizationProvider>
   );
 };

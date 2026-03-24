@@ -1,59 +1,17 @@
-// Mock data for teachers
-const mockTeachers = [
-  { id: 't1', name: 'John Doe', email: 'john@example.com' },
-  { id: 't2', name: 'Jane Smith', email: 'jane@example.com' },
-  { id: 't3', name: 'Robert Johnson', email: 'robert@example.com' },
-];
-
-// Mock data for classes
-let mockClasses: Array<{
-  id: string;
-  className: string;
-  status: 'Active' | 'Inactive';
-  createdAt: string;
-  updatedAt: string;
-  sections: Array<{
-    id: string;
-    name: string;
-    studentCount: number;
-    classTeacherId: string;
-    maxStudents: number;
-  }>;
-}> = [
-  {
-    id: '1',
-    className: 'Class 1',
-    status: 'Active',
-    createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z',
-    sections: [
-      { id: 's1', name: 'A', studentCount: 25, classTeacherId: 't1', maxStudents: 30 },
-      { id: 's2', name: 'B', studentCount: 20, classTeacherId: 't2', maxStudents: 30 },
-    ],
-  },
-  {
-    id: '2',
-    className: 'Class 2',
-    status: 'Active',
-    createdAt: '2023-01-02T00:00:00Z',
-    updatedAt: '2023-01-02T00:00:00Z',
-    sections: [
-      { id: 's3', name: 'A', studentCount: 28, classTeacherId: 't3', maxStudents: 35 },
-    ],
-  },
-];
+import apiService from '../../../service/apiService';
 
 export interface Teacher {
   id: string;
   name: string;
-  email: string;
+  email?: string;
 }
 
 export interface Section {
   id: string;
   name: string;
   studentCount: number;
-  classTeacherId: string;
+  classTeacherId?: string | null;
+  classTeacherName?: string | null;
   maxStudents: number;
   classTeacher?: Teacher;
 }
@@ -61,265 +19,111 @@ export interface Section {
 export interface ClassData {
   id: string;
   className: string;
+  code?: string;
+  description?: string;
   status: 'Active' | 'Inactive';
   createdAt: string;
   updatedAt: string;
   sections: Section[];
 }
 
-// Simulate network delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const formatTimestamp = (ts: any): string => {
+  if (!ts) return '';
+  if (typeof ts === 'string') return ts;
+  if (Array.isArray(ts)) {
+    return new Date(ts[0], (ts[1] || 1) - 1, ts[2] || 1).toISOString();
+  }
+  return '';
+};
 
-/**
- * Fetches all classes with their sections and teachers
- */
+const mapSection = (s: any): Section => ({
+  id: s.id || '',
+  name: s.name || '',
+  studentCount: s.studentCount ?? s.capacity ?? 0,
+  classTeacherId: s.classTeacherId || null,
+  classTeacherName: s.classTeacherName || null,
+  maxStudents: s.capacity ?? s.maxStudents ?? 40,
+  classTeacher: s.classTeacherId
+    ? { id: s.classTeacherId, name: s.classTeacherName || 'Assigned' }
+    : undefined,
+});
+
+const mapClass = (c: any): ClassData => ({
+  id: c.id || '',
+  className: c.name || c.className || '',
+  code: c.code || '',
+  description: c.description || '',
+  status: (c.status === 'INACTIVE' || c.status === 'Inactive') ? 'Inactive' : 'Active',
+  createdAt: formatTimestamp(c.createdAt),
+  updatedAt: formatTimestamp(c.updatedAt),
+  sections: (c.sections || []).map(mapSection),
+});
+
 export const fetchClasses = async (): Promise<ClassData[]> => {
-  await delay(500); // Simulate network delay
-  
-  // Map classTeacherId to actual teacher data
-  return mockClasses.map(cls => ({
-    ...cls,
-    sections: cls.sections.map(section => ({
-      ...section,
-      classTeacher: mockTeachers.find(t => t.id === section.classTeacherId)
-    }))
-  }));
-};
-
-/**
- * Creates a new class
- */
-export const createClass = async (classData: Omit<ClassData, 'id' | 'createdAt' | 'updatedAt'>): Promise<ClassData> => {
-  await delay(500); // Simulate network delay
-  
-  const newClass = {
-    ...classData,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  
-  mockClasses.push(newClass);
-  return newClass;
-};
-
-/**
- * Updates an existing class
- */
-export const updateClass = async (id: string, classData: Partial<ClassData>): Promise<ClassData> => {
-  await delay(500); // Simulate network delay
-  
-  const index = mockClasses.findIndex(c => c.id === id);
-  if (index === -1) {
-    throw new Error('Class not found');
+  try {
+    const res = await apiService.get('/classes', { params: { page: 0, size: 100 } });
+    const data = res?.data || res || {};
+    const content = data.content || data.classes || data || [];
+    const arr = Array.isArray(content) ? content : [];
+    return arr.map(mapClass);
+  } catch (error) {
+    console.error('Error fetching classes:', error);
+    return [];
   }
-  
-  const updatedClass = {
-    ...mockClasses[index],
-    ...classData,
-    updatedAt: new Date().toISOString(),
-  };
-  
-  mockClasses[index] = updatedClass;
-  return updatedClass;
 };
 
-/**
- * Deletes a class
- */
+export const createClass = async (classData: any): Promise<ClassData> => {
+  const body = {
+    name: classData.className || classData.name,
+    code: classData.code || '',
+    description: classData.description || '',
+    sections: (classData.sections || []).map((s: any) => ({
+      name: s.name,
+      capacity: s.maxStudents || 40,
+      classTeacherId: s.classTeacherId || null,
+    })),
+  };
+  const res = await apiService.post('/classes', body);
+  return mapClass(res?.data || res);
+};
+
+export const updateClass = async (id: string, classData: any): Promise<ClassData> => {
+  const body = {
+    name: classData.className || classData.name,
+    code: classData.code || '',
+    description: classData.description || '',
+    sections: (classData.sections || []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      capacity: s.maxStudents || 40,
+      classTeacherId: s.classTeacherId || null,
+    })),
+  };
+  const res = await apiService.put(`/classes/${id}`, body);
+  return mapClass(res?.data || res);
+};
+
+export const getClassById = async (id: string): Promise<ClassData | null> => {
+  try {
+    const res = await apiService.get(`/classes/${id}`);
+    const data = res?.data || res;
+    return data ? mapClass(data) : null;
+  } catch (error) {
+    console.error('Error fetching class:', error);
+    return null;
+  }
+};
+
 export const deleteClass = async (id: string): Promise<void> => {
-  await delay(500); // Simulate network delay
-  
-  const index = mockClasses.findIndex(c => c.id === id);
-  if (index === -1) {
-    throw new Error('Class not found');
-  }
-  
-  mockClasses = mockClasses.filter(c => c.id !== id);
+  await apiService.delete(`/classes/${id}`);
 };
 
 const classAPI = {
   fetchClasses,
+  getClassById,
   createClass,
   updateClass,
   deleteClass,
 };
 
 export default classAPI;
-
-// export interface ClassFormData {
-//   className: string;
-//   status: 'active' | 'inactive';
-//   sections: Array<{
-//     name: string;
-//     classTeacherId?: string;
-//     maxStudents?: number;
-//   }>;
-// }
-
-// export interface ClassListFilters {
-//   status?: 'Active' | 'Inactive';
-//   classTeacherId?: string;
-//   searchQuery?: string;
-// }
-
-// export interface TeacherOption {
-//   id: string;
-//   name: string;
-//   email: string;
-// }
-
-// // Mock data for demonstration
-// const mockClasses: ClassData[] = [
-//   {
-//     id: '1',
-//     className: 'Class 1',
-//     status: 'Active',
-//     createdAt: '2023-01-01',
-//     updatedAt: '2023-01-01',
-//     sections: [
-//       { id: '1-1', name: 'A', studentCount: 25, classTeacher: { id: 't1', name: 'John Doe' } },
-//       { id: '1-2', name: 'B', studentCount: 20, classTeacher: { id: 't2', name: 'Jane Smith' } },
-//     ],
-//   },
-//   {
-//     id: '2',
-//     className: 'Class 2',
-//     status: 'Active',
-//     createdAt: '2023-01-02',
-//     updatedAt: '2023-01-02',
-//     sections: [
-//       { id: '2-1', name: 'A', studentCount: 22, classTeacher: { id: 't3', name: 'Robert Johnson' } },
-//     ],
-//   },
-// ];
-
-// // Mock teachers data
-// const mockTeachers: TeacherOption[] = [
-//   { id: 't1', name: 'John Doe', email: 'john@example.com' },
-//   { id: 't2', name: 'Jane Smith', email: 'jane@example.com' },
-//   { id: 't3', name: 'Robert Johnson', email: 'robert@example.com' },
-// ];
-
-// // Simulate API delay
-// const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// class ClassAPI {
-//   // Fetch all classes with optional filters
-//   async getClasses(filters?: ClassListFilters): Promise<ClassData[]> {
-//     await delay(500); // Simulate network delay
-    
-//     let result = [...mockClasses];
-    
-//     if (filters) {
-//       // Apply status filter
-//       if (filters.status) {
-//         result = result.filter(cls => cls.status === filters.status);
-//       }
-      
-//       // Apply class teacher filter
-//       if (filters.classTeacherId) {
-//         result = result.filter(cls => 
-//           cls.sections.some(section => section.classTeacher?.id === filters.classTeacherId)
-//         );
-//       }
-      
-//       // Apply search query
-//       if (filters.searchQuery) {
-//         const query = filters.searchQuery.toLowerCase();
-//         result = result.filter(cls => 
-//           cls.className.toLowerCase().includes(query) ||
-//           cls.sections.some(section => section.name.toLowerCase().includes(query))
-//         );
-//       }
-//     }
-    
-//     return result;
-//   }
-  
-//   // Get a single class by ID
-//   async getClassById(id: string): Promise<ClassData | undefined> {
-//     await delay(300);
-//     return mockClasses.find(cls => cls.id === id);
-//   }
-  
-//   // Create a new class
-//   async addClass(classData: ClassFormData): Promise<ClassData> {
-//     await delay(500);
-//     const newClass: ClassData = {
-//       id: Math.random().toString(36).substr(2, 9),
-//       className: classData.className,
-//       status: classData.status,
-//       sections: classData.sections.map((section, index) => ({
-//         id: `${Math.random().toString(36).substr(2, 5)}-${index}`,
-//         name: section.name,
-//         maxStudents: section.maxStudents,
-//         classTeacher: section.classTeacherId 
-//           ? mockTeachers.find(t => t.id === section.classTeacherId)
-//           : undefined,
-//         studentCount: 0,
-//       })),
-//       createdAt: new Date().toISOString(),
-//       updatedAt: new Date().toISOString(),
-//     };
-    
-//     mockClasses.push(newClass);
-//     return newClass;
-//   }
-  
-//   // Update an existing class
-//   async updateClass(id: string, classData: ClassFormData): Promise<ClassData> {
-//     await delay(500);
-//     const index = mockClasses.findIndex(c => c.id === id);
-    
-//     if (index === -1) {
-//       throw new Error('Class not found');
-//     }
-    
-//     const updatedClass: ClassData = {
-//       ...mockClasses[index],
-//       className: classData.className,
-//       status: classData.status,
-//       sections: classData.sections.map((section, idx) => ({
-//         id: mockClasses[index].sections[idx]?.id || `${Math.random().toString(36).substr(2, 5)}-${idx}`,
-//         name: section.name,
-//         maxStudents: section.maxStudents,
-//         classTeacher: section.classTeacherId 
-//           ? mockTeachers.find(t => t.id === section.classTeacherId)
-//           : undefined,
-//         studentCount: mockClasses[index].sections[idx]?.studentCount || 0,
-//       })),
-//       updatedAt: new Date().toISOString(),
-//     };
-    
-//     mockClasses[index] = updatedClass;
-//     return updatedClass;
-//   }
-  
-//   // Delete a class
-//   async deleteClass(id: string): Promise<void> {
-//     await delay(300);
-//     const index = mockClasses.findIndex(c => c.id === id);
-//     if (index !== -1) {
-//       mockClasses.splice(index, 1);
-//     }
-//   }
-  
-//   // Get all teachers (for dropdowns)
-//   async getTeachers(options?: { search?: string }): Promise<TeacherOption[]> {
-//     await delay(300);
-//     let teachers = [...mockTeachers];
-    
-//     if (options?.search) {
-//       const search = options.search.toLowerCase();
-//       teachers = teachers.filter(teacher => 
-//         teacher.name.toLowerCase().includes(search) ||
-//         teacher.email.toLowerCase().includes(search)
-//       );
-//     }
-    
-//     return teachers;
-//   }
-// }
-
-// export const classAPI = new ClassAPI();

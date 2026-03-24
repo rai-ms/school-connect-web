@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Lock, Mail, User, Users } from 'lucide-react';
-import axios from 'axios';
-import { AUTH_ENDPOINTS } from '../config/api.config';
+import apiService from '../service/apiService';
 
 type UserRole = 'admin' | 'teacher' | 'student' | 'parent' | 'superadmin';
 
@@ -53,12 +52,12 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(AUTH_ENDPOINTS.LOGIN, {
+      const response = await apiService.post('/auth/login', {
         username: formData.email.trim(),
         password: formData.password,
       });
 
-      const data = response.data;
+      const data = response?.data || response;
 
       // Store auth data in localStorage
       const token = data.token || data.accessToken || data.authToken || data.data?.token || data.data?.accessToken;

@@ -35,8 +35,7 @@ import {
   FileDownload as ExportIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { STUDENT_ENDPOINTS } from '../../../config/api.config';
+import apiService from '../../../service/apiService';
 
 interface Student {
   id: string;
@@ -68,16 +67,10 @@ const StudentList: React.FC = () => {
     status: '',
   });
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('authToken');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
-
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(STUDENT_ENDPOINTS.STUDENTS, {
-        headers: getAuthHeaders(),
+      const response = await apiService.get('/students', {
         params: {
           page: page,
           size: rowsPerPage,
@@ -88,7 +81,7 @@ const StudentList: React.FC = () => {
         },
       });
 
-      const data = response.data?.data || response.data || {};
+      const data = response?.data || response || {};
       const content = data.content || data.students || data || [];
       const studentsArray = Array.isArray(content) ? content : [];
 
@@ -163,9 +156,7 @@ const StudentList: React.FC = () => {
       return;
     }
     try {
-      await axios.delete(STUDENT_ENDPOINTS.STUDENT_BY_ID(id), {
-        headers: getAuthHeaders(),
-      });
+      await apiService.delete(`/students/${id}`);
       fetchStudents();
     } catch (error) {
       console.error('Error deleting student:', error);

@@ -1,12 +1,16 @@
 export interface Teacher {
   id: string;
   teacherId: string;
+  employeeId?: string;
   fullName: string;
   email: string;
   phone: string;
   alternatePhone?: string;
   dateOfBirth: string;
   gender: 'Male' | 'Female' | 'Other';
+  designation?: string;
+  department?: string;
+  employeeType?: string;
   qualification: string;
   experience: number;
   specialization: string[];

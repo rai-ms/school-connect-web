@@ -2,6 +2,7 @@ import { Component, ErrorInfo, ReactNode, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { DemoProvider } from './contexts/DemoContext';
 import Header from './components/Header';
+import SEO from './components/SEO';
 import Hero from './components/Hero';
 import Features from './components/Features';
 import ProductDemo from './components/ProductDemo';
@@ -34,6 +35,8 @@ import AddTeacherForm from './SuperAdminPages/SuperAdminDashboard/Teachers/AddTe
 import AddClass from './SuperAdminPages/SuperAdminDashboard/ClassManage/AddClass';
 import ClassSchedule from './SuperAdminPages/SuperAdminDashboard/ClassManage/ClassSchedule';
 import ClassList from './SuperAdminPages/SuperAdminDashboard/ClassManage/ClassList';
+import ViewClass from './SuperAdminPages/SuperAdminDashboard/ClassManage/ViewClass';
+import EditClass from './SuperAdminPages/SuperAdminDashboard/ClassManage/EditClass';
 
 // Subject Management
 import SubjectListPage from './SuperAdminPages/SuperAdminDashboard/SubjectManagement/pages/SubjectListPage';
@@ -106,7 +109,8 @@ const getUserDisplayName = (): string => {
 // Public Layout Component
 const PublicLayout = ({ onLoginClick, isAuthenticated }: { onLoginClick: () => void, isAuthenticated: boolean }) => (
   <div className="min-h-screen bg-white font-inter">
-    <Header 
+    <SEO />
+    <Header
       onLoginClick={onLoginClick}
       isAuthenticated={isAuthenticated}
       onLogout={() => {}}
@@ -204,7 +208,9 @@ const DashboardLayout = ({ onLogout }: { onLogout: () => void }) => {
             </Route>
             <Route path="classes">
               <Route index element={<ClassList />} />
-              <Route path="add" element={<AddClass/>} />
+              <Route path="add" element={<AddClass />} />
+              <Route path=":id" element={<ViewClass />} />
+              <Route path="edit/:id" element={<EditClass />} />
               <Route path="schedule" element={<ClassSchedule />} />
             </Route>
             <Route path="subjects">

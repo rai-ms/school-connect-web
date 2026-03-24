@@ -8,8 +8,9 @@ import {
   IconButton, Chip, CircularProgress, Snackbar, Alert
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import { classAPI } from './classAPI';
-import { ClassFormData, TeacherOption, ClassData } from './types';
+import classAPI, { ClassData } from './classAPI';
+import { ClassFormData, TeacherOption } from './types';
+import apiService from '../../../service/apiService';
 
 // Validation Schema
 const validationSchema = Yup.object({
@@ -48,27 +49,37 @@ const EditClass: React.FC = () => {
       
       try {
         setLoading(true);
-        const [classData, teachersData] = await Promise.all([
+        const [classRes, teachersRes] = await Promise.allSettled([
           classAPI.getClassById(id),
-          classAPI.getTeachers()
+          apiService.get('/teachers', { params: { page: 0, size: 100 } }),
         ]);
-        
-        if (classData) {
+
+        if (classRes.status === 'fulfilled' && classRes.value) {
+          const cls = classRes.value;
           const formattedData: ClassFormData = {
-            className: classData.className,
-            status: classData.status,
-            sections: classData.sections.map(section => ({
+            className: cls.className,
+            status: cls.status,
+            sections: cls.sections.map(section => ({
               id: section.id,
               name: section.name,
-              classTeacherId: section.classTeacher?.id || '',
-              maxStudents: section.maxStudents
-            }))
+              classTeacherId: section.classTeacherId || '',
+              maxStudents: section.maxStudents,
+            })),
           };
           setInitialValues(formattedData);
           formik.resetForm({ values: formattedData });
         }
-        
-        setTeachers(teachersData);
+
+        if (teachersRes.status === 'fulfilled') {
+          const data = teachersRes.value?.data || teachersRes.value || {};
+          const content = data.content || data.teachers || [];
+          const mapped: TeacherOption[] = (Array.isArray(content) ? content : []).map((t: any) => ({
+            id: t.id || '',
+            name: t.fullName || t.name || `${t.firstName || ''} ${t.lastName || ''}`.trim(),
+            email: t.email || '',
+          }));
+          setTeachers(mapped);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         setSnackbar({
@@ -112,7 +123,12 @@ const EditClass: React.FC = () => {
           sections: processedSections,
         };
 
-        await classAPI.updateClass(id, updatedValues);
+        await classAPI.updateClass(id, {
+          name: updatedValues.className,
+          className: updatedValues.className,
+          status: updatedValues.status,
+          sections: updatedValues.sections,
+        });
         
         setSnackbar({
           open: true,
