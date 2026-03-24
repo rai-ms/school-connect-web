@@ -37,6 +37,7 @@ import ClassSchedule from './SuperAdminPages/SuperAdminDashboard/ClassManage/Cla
 import ClassList from './SuperAdminPages/SuperAdminDashboard/ClassManage/ClassList';
 import ViewClass from './SuperAdminPages/SuperAdminDashboard/ClassManage/ViewClass';
 import EditClass from './SuperAdminPages/SuperAdminDashboard/ClassManage/EditClass';
+import MasterDataPage from './SuperAdminPages/SuperAdminDashboard/MasterData/MasterDataPage';
 
 // Subject Management
 import SubjectListPage from './SuperAdminPages/SuperAdminDashboard/SubjectManagement/pages/SubjectListPage';
@@ -238,6 +239,7 @@ const DashboardLayout = ({ onLogout }: { onLogout: () => void }) => {
               <Route path="schedule" element={<ScheduleExamPage />} />
               <Route path="results" element={<ExamResultsPage />} />
             </Route>
+            <Route path="master-data" element={<MasterDataPage />} />
             <Route path="settings" element={<div className="bg-white p-6 rounded-lg shadow-sm">
               <h1 className="text-2xl font-bold mb-4">Settings</h1>
               <p>Configure system settings.</p>

@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, School, Users, Settings, LogOut, GraduationCap,
   UserPlus, BookOpen, BookOpenText, Bell, CalendarCheck, BookOpenCheck,
-  CreditCard, FileText, Calendar, MessageSquare,
+  CreditCard, FileText, Calendar, MessageSquare, Database,
 } from 'lucide-react';
 
 type UserRole = 'superadmin' | 'admin' | 'teacher' | 'student' | 'parent';
@@ -58,12 +58,12 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       ],
     },
 
-    // -- School Admin + Super Admin --
+    // -- School Admin only --
     {
       key: 'students',
       icon: <GraduationCap className="w-5 h-5" />,
       label: 'Students',
-      roles: ['superadmin', 'admin'],
+      roles: ['admin'],
       children: [
         { label: 'View Students', path: '/dashboard/students' },
         { label: 'Add Student', path: '/dashboard/students/add' },
@@ -73,7 +73,7 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       key: 'teachers',
       icon: <UserPlus className="w-5 h-5" />,
       label: 'Teachers',
-      roles: ['superadmin', 'admin'],
+      roles: ['admin'],
       children: [
         { label: 'View Teachers', path: '/dashboard/teachers' },
         { label: 'Add Teacher', path: '/dashboard/teachers/add' },
@@ -83,7 +83,7 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       key: 'classes',
       icon: <BookOpen className="w-5 h-5" />,
       label: 'Classes',
-      roles: ['superadmin', 'admin'],
+      roles: ['admin'],
       children: [
         { label: 'View Classes', path: '/dashboard/classes' },
         { label: 'Add Class', path: '/dashboard/classes/add' },
@@ -94,7 +94,7 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       key: 'subjects',
       icon: <BookOpenText className="w-5 h-5" />,
       label: 'Subjects',
-      roles: ['superadmin', 'admin'],
+      roles: ['admin'],
       children: [
         { label: 'View Subjects', path: '/dashboard/subjects' },
         { label: 'Add Subject', path: '/dashboard/subjects/add' },
@@ -105,7 +105,7 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       icon: <Users className="w-5 h-5" />,
       label: 'Users',
       path: '/dashboard/users',
-      roles: ['superadmin', 'admin'],
+      roles: ['admin'],
     },
 
     // -- Admin + Teacher --
@@ -113,7 +113,7 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       key: 'attendance',
       icon: <CalendarCheck className="w-5 h-5" />,
       label: 'Attendance',
-      roles: ['superadmin', 'admin', 'teacher'],
+      roles: ['admin', 'teacher'],
       children: [
         { label: 'Mark Attendance', path: '/dashboard/attendance/mark' },
         { label: 'View Attendance', path: '/dashboard/attendance' },
@@ -123,7 +123,7 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       key: 'exams',
       icon: <BookOpenCheck className="w-5 h-5" />,
       label: 'Exams',
-      roles: ['superadmin', 'admin', 'teacher'],
+      roles: ['admin', 'teacher'],
       children: [
         { label: 'View Exams', path: '/dashboard/exams' },
         { label: 'Schedule Exam', path: '/dashboard/exams/schedule' },
@@ -134,13 +134,22 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       key: 'notices',
       icon: <Bell className="w-5 h-5" />,
       label: 'Notices',
-      roles: ['superadmin', 'admin', 'teacher', 'student', 'parent'],
+      roles: ['admin', 'teacher', 'student', 'parent'],
       children: [
         { label: 'View Notices', path: '/dashboard/notices' },
-        ...((['superadmin', 'admin', 'teacher'] as UserRole[]).includes(userRole)
+        ...((['admin', 'teacher'] as UserRole[]).includes(userRole)
           ? [{ label: 'Add Notice', path: '/dashboard/notices/add' }]
           : []),
       ],
+    },
+
+    // -- Admin tools --
+    {
+      key: 'master-data',
+      icon: <Database className="w-5 h-5" />,
+      label: 'Master Data',
+      path: '/dashboard/master-data',
+      roles: ['admin'],
     },
 
     // -- Settings (all logged-in roles) --

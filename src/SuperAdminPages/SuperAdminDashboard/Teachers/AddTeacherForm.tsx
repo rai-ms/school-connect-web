@@ -128,6 +128,7 @@ const AddTeacherForm: React.FC = () => {
     joiningDate: Yup.date()
       .required('Joining date is required')
       .max(new Date(), 'Joining date cannot be in the future'),
+    designation: Yup.string().required('Designation is required'),
     address: Yup.string().required('Address is required'),
     isClassTeacher: Yup.boolean(),
     transportAssigned: Yup.boolean(),
@@ -169,36 +170,53 @@ const AddTeacherForm: React.FC = () => {
     onSubmit: async (values) => {
       try {
         setIsSubmitting(true);
-        
-        const formData = new FormData();
-        
-        // Append all form fields to formData
-        Object.entries(values).forEach(([key, value]) => {
-          if (Array.isArray(value)) {
-            value.forEach(item => formData.append(key, item));
-          } else if (value !== null && value !== undefined) {
-            formData.append(key, value);
-          }
+
+        // Split fullName into firstName + lastName
+        const nameParts = values.fullName.trim().split(/\s+/);
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || firstName;
+
+        const genderMap: Record<string, string> = { Male: 'MALE', Female: 'FEMALE', Other: 'OTHER' };
+
+        const payload: Record<string, any> = {
+          firstName,
+          lastName,
+          fullName: values.fullName.trim(),
+          employeeId: employeeId || undefined,
+          email: values.email.trim(),
+          phone: values.phone,
+          alternatePhone: values.alternatePhone || undefined,
+          dateOfBirth: values.dateOfBirth,
+          gender: genderMap[values.gender] || values.gender.toUpperCase(),
+          designation: values.designation || undefined,
+          department: values.department || undefined,
+          employeeType: values.employeeType || undefined,
+          qualification: values.qualification,
+          experience: values.experience,
+          specialization: values.specialization,
+          assignedClasses: values.assignedClasses,
+          joiningDate: values.joiningDate,
+          address: values.address,
+          isClassTeacher: values.isClassTeacher,
+          transportAssigned: values.transportAssigned,
+          hostelAssigned: values.hostelAssigned,
+          status: 'ACTIVE',
+          password: values.password,
+        };
+
+        // Remove undefined values
+        Object.keys(payload).forEach(key => {
+          if (payload[key] === undefined || payload[key] === '') delete payload[key];
         });
-        
-        // Append profile photo if exists
-        if (values.profilePhotoFile) {
-          formData.append('profilePhoto', values.profilePhotoFile);
-        }
-        
-        // Append document files if any
-        if (values.documentFiles) {
-          Array.from(values.documentFiles).forEach((file, index) => {
-            formData.append(`documents[${index}]`, file);
-          });
-        }
-        
-        await teacherAPI.createTeacher(formData);
+
+        await apiService.post('/teachers', payload);
         setSnackbar({ open: true, message: 'Teacher created successfully!', severity: 'success' });
         setTimeout(() => navigate('/dashboard/teachers'), 1500);
       } catch (error: any) {
         console.error('Error creating teacher:', error);
-        setSnackbar({ open: true, message: error?.message || 'Failed to create teacher', severity: 'error' });
+        const msg = error?.errors?.[Object.keys(error?.errors || {})[0]]?.[0]
+          || error?.message || 'Failed to create teacher';
+        setSnackbar({ open: true, message: msg, severity: 'error' });
       } finally {
         setIsSubmitting(false);
       }
