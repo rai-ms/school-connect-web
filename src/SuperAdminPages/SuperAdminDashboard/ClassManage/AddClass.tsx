@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { debounce } from 'lodash';
+import apiService from '../../../service/apiService';
 
 
 interface Teacher {
@@ -78,39 +79,28 @@ const AddClass: React.FC = () => {
     action: null as React.ReactNode | null,
   });
 
-  // Fetch initial data
-  // useEffect(() => {
-  //   const fetchInitialData = async () => {
-  //     try {
-  //       const [teachersData, classesData] = await Promise.all([
-  //         classAPI.getTeachers({}),
-  //         classAPI.getClasses()
-  //       ]);
-        
-  //       setTeachers(teachersData || []);
-        
-  //       // Create a set of existing class names for duplicate checking
-  //       // const classNames = new Set<string>();
-  //       // if (classesData && Array.isArray(classesData)) {
-  //       //   classesData.forEach((cls: { name?: string }) => {
-  //       //     if (cls?.name) {
-  //       //       classNames.add(cls.name.toLowerCase());
-  //       //     }
-  //       //   });
-  //       // }
-  //       // setExistingClasses(classNames);
-        
-  //     } catch (error) {
-  //       console.error('Error fetching initial data:', error);
-  //       showSnackbar('Failed to load initial data', 'error');
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+  // Fetch teachers on mount
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const res = await apiService.get('/teachers', { params: { page: 0, size: 100 } });
+        const data = res?.data || res || {};
+        const content = data.content || data.teachers || [];
+        const mapped = (Array.isArray(content) ? content : []).map((t: any) => ({
+          id: t.id || '',
+          name: t.fullName || t.name || `${t.firstName || ''} ${t.lastName || ''}`.trim(),
+          email: t.email || '',
+        }));
+        setTeachers(mapped);
+      } catch (error) {
+        console.error('Error fetching teachers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeachers();
+  }, []);
 
-  //   fetchInitialData();
-  // }, []);
-  
   // Debounced teacher search
   const searchTeachers = useMemo(
     () =>
@@ -194,9 +184,15 @@ const AddClass: React.FC = () => {
           sections: processedSections,
         };
 
-        // const createdClass = await classAPI.createClass(newValues);
-        
-        // Show success message with created class details
+        await apiService.post('/classes', {
+          name: newValues.className,
+          sections: newValues.sections.map(s => ({
+            name: s.name,
+            capacity: s.maxStudents || 40,
+            classTeacherId: s.classTeacherId || null,
+          })),
+        });
+
         const successMessage = `Class "${newValues.className}" with ${newValues.sections.length} section(s) created successfully!`;
         
         showSnackbar(
