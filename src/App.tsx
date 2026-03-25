@@ -142,7 +142,7 @@ const DashboardLayout = ({ onLogout }: { onLogout: () => void }) => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 relative">
+    <div className="flex h-screen bg-gray-50 relative overflow-hidden" style={{ position: 'fixed', inset: 0, zIndex: 100 }}>
       {/* Overlay when drawer is open on mobile */}
       {isDrawerOpen && (
         <div 
