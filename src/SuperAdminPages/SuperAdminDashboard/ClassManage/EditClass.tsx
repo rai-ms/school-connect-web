@@ -51,7 +51,7 @@ const EditClass: React.FC = () => {
         setLoading(true);
         const [classRes, teachersRes] = await Promise.allSettled([
           classAPI.getClassById(id),
-          apiService.get('/teachers', { params: { page: 0, size: 100 } }),
+          apiService.get('/teachers/dropdown'),
         ]);
 
         if (classRes.status === 'fulfilled' && classRes.value) {
@@ -71,9 +71,9 @@ const EditClass: React.FC = () => {
         }
 
         if (teachersRes.status === 'fulfilled') {
-          const data = teachersRes.value || {};
-          const content = data.content || data.data?.content || data.teachers || [];
-          const mapped: TeacherOption[] = (Array.isArray(content) ? content : []).map((t: any) => ({
+          const data = teachersRes.value || [];
+          const list = Array.isArray(data) ? data : data.content || [];
+          const mapped: TeacherOption[] = list.map((t: any) => ({
             id: t.id || '',
             name: t.fullName || t.name || `${t.firstName || ''} ${t.lastName || ''}`.trim(),
             email: t.email || '',

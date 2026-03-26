@@ -83,10 +83,10 @@ const AddClass: React.FC = () => {
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const res = await apiService.get('/teachers', { params: { page: 0, size: 100 } });
-        const data = res?.data || res || {};
-        const content = data.content || data.teachers || [];
-        const mapped = (Array.isArray(content) ? content : []).map((t: any) => ({
+        const res = await apiService.get('/teachers/dropdown');
+        const data = res || [];
+        const content = Array.isArray(data) ? data : data.content || [];
+        const mapped = content.map((t: any) => ({
           id: t.id || '',
           name: t.fullName || t.name || `${t.firstName || ''} ${t.lastName || ''}`.trim(),
           email: t.email || '',
