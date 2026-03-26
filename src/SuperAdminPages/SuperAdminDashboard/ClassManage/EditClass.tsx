@@ -71,8 +71,8 @@ const EditClass: React.FC = () => {
         }
 
         if (teachersRes.status === 'fulfilled') {
-          const data = teachersRes.value?.data || teachersRes.value || {};
-          const content = data.content || data.teachers || [];
+          const data = teachersRes.value || {};
+          const content = data.content || data.data?.content || data.teachers || [];
           const mapped: TeacherOption[] = (Array.isArray(content) ? content : []).map((t: any) => ({
             id: t.id || '',
             name: t.fullName || t.name || `${t.firstName || ''} ${t.lastName || ''}`.trim(),
