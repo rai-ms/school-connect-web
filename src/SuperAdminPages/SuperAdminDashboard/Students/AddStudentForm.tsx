@@ -145,30 +145,43 @@ const AddStudentForm: React.FC = () => {
       try {
         setIsSubmitting(true);
         const formData = new FormData();
-        
+
         // Append all form fields to FormData
         Object.entries(values).forEach(([key, value]) => {
           if (key === 'profilePicture' && value) {
-            // Handle file upload separately
             formData.append(key, value);
+          } else if (key === 'tags') {
+            // Skip tags here, handled below
           } else if (value !== null && value !== undefined) {
-            // Convert non-file fields to string
             formData.append(key, String(value));
           }
         });
-        
+
         // Add tags as JSON string
         if (values.tags && values.tags.length > 0) {
           formData.append('tags', JSON.stringify(values.tags));
         }
-        
-        await studentAPI.createStudent(formData);
-        // Show success message
-        // navigate('/dashboard/students');
-        console.log('Student created successfully');
-      } catch (error) {
+
+        await apiService.post('/students', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        setSnackbar({
+          open: true,
+          message: 'Student created successfully!',
+          severity: 'success',
+        });
+
+        // Navigate to students list after short delay
+        setTimeout(() => navigate('/dashboard/students'), 1500);
+      } catch (error: any) {
         console.error('Error creating student:', error);
-        // Show error message
+        const message = error?.message || 'Failed to create student. Please try again.';
+        setSnackbar({
+          open: true,
+          message,
+          severity: 'error',
+        });
       } finally {
         setIsSubmitting(false);
       }
@@ -657,7 +670,7 @@ const AddStudentForm: React.FC = () => {
                 type="submit"
                 variant="contained"
                 color="primary"
-                startIcon={<SaveIcon />}
+                startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Saving...' : 'Save Student'}
@@ -666,6 +679,22 @@ const AddStudentForm: React.FC = () => {
           </Box>
         </form>
       </Paper>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
