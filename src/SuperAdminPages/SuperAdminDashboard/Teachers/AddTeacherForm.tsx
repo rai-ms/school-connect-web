@@ -214,8 +214,15 @@ const AddTeacherForm: React.FC = () => {
         setTimeout(() => navigate('/dashboard/teachers'), 1500);
       } catch (error: any) {
         console.error('Error creating teacher:', error);
-        const msg = error?.errors?.[Object.keys(error?.errors || {})[0]]?.[0]
-          || error?.message || 'Failed to create teacher';
+        const raw = error?.response?.data?.message || error?.message || '';
+        let msg = 'Failed to create teacher';
+        if (raw.includes('uk_user_tenant_email') || raw.includes('already exists')) {
+          msg = 'A user with this email already exists. Please use a different email.';
+        } else if (raw.includes('uk_teacher_employee_id') || raw.includes('employeeId')) {
+          msg = 'This Employee ID is already in use.';
+        } else if (raw.length < 100) {
+          msg = raw;
+        }
         setSnackbar({ open: true, message: msg, severity: 'error' });
       } finally {
         setIsSubmitting(false);
