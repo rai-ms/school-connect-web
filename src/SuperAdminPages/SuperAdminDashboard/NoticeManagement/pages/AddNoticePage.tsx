@@ -64,6 +64,12 @@ const AddNoticePage: React.FC = () => {
     validationSchema,
     onSubmit: async (values) => {
       try {
+        const authorId = localStorage.getItem('userId');
+        if (!authorId) {
+          setSnackbar({ open: true, message: 'Session expired. Please log in again.', severity: 'error' });
+          return;
+        }
+
         await apiService.post('/announcements', {
           title: values.title,
           content: values.content,
@@ -72,12 +78,16 @@ const AddNoticePage: React.FC = () => {
           priority: values.priority,
           publishDate: values.publishDate?.toISOString(),
           expiryDate: values.expiryDate?.toISOString(),
+          authorId,
         });
 
         setSnackbar({ open: true, message: 'Notice created successfully!', severity: 'success' });
         setTimeout(() => navigate('/dashboard/notices'), 1500);
       } catch (error: any) {
-        const message = error?.message || 'Failed to create notice. Please try again.';
+        const raw = error?.message || '';
+        const message = raw.includes('violates') || raw.includes('column')
+          ? 'Failed to create notice. Please try again.'
+          : raw || 'Failed to create notice. Please try again.';
         setSnackbar({ open: true, message, severity: 'error' });
       }
     },

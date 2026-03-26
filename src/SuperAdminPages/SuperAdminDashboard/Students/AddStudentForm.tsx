@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 
 
-import { 
-  Box, 
-  Button, 
-  TextField, 
-  Paper, 
-  Typography, 
+import {
+  Box,
+  Button,
+  TextField,
+  Paper,
+  Typography,
   Grid as MuiGrid,
-  MenuItem, 
-  FormControlLabel, 
-  Checkbox, 
-  Chip, 
-  Avatar, 
+  MenuItem,
+  FormControlLabel,
+  Checkbox,
+  Chip,
+  Avatar,
   IconButton,
   Divider,
   FormHelperText,
@@ -20,7 +20,10 @@ import {
   InputLabel,
   Select,
   SelectChangeEvent,
-  GridTypeMap
+  GridTypeMap,
+  Snackbar,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
 
@@ -49,7 +52,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { studentAPI } from './studentAPI';
+import apiService from '../../../service/apiService';
 import { StudentFormData } from './types';
 
 // Validation Schema
@@ -80,15 +83,24 @@ const AddStudentForm: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({ open: false, message: '', severity: 'success' });
 
   // Load classes on component mount
   useEffect(() => {
     const loadClasses = async () => {
       try {
-        const data = await studentAPI.getClasses();
-        setClasses(data);
+        const response = await apiService.get('/classes');
+        const data = response?.data || response || {};
+        const classList = data.content || data.classes || data || [];
+        setClasses(Array.isArray(classList) ? classList.map((c: any) => c.name || c.className || String(c)) : []);
       } catch (error) {
         console.error('Failed to load classes', error);
+        // Fallback classes if API fails
+        setClasses(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']);
       }
     };
     loadClasses();
@@ -97,10 +109,14 @@ const AddStudentForm: React.FC = () => {
   // Load sections when class changes
   const loadSections = async (classValue: string) => {
     try {
-      const data = await studentAPI.getSections(classValue);
-      setSections(data);
+      const response = await apiService.get(`/classes/${classValue}/sections`);
+      const data = response?.data || response || {};
+      const sectionList = data.content || data.sections || data || [];
+      setSections(Array.isArray(sectionList) ? sectionList.map((s: any) => s.name || s.sectionName || String(s)) : []);
     } catch (error) {
       console.error('Failed to load sections', error);
+      // Fallback sections if API fails
+      setSections(['A', 'B', 'C', 'D']);
     }
   };
 

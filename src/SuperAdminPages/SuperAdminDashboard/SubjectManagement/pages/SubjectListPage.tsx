@@ -73,12 +73,13 @@ const SubjectListPage: React.FC = () => {
   const fetchSubjects = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiService.get<SubjectsResponse>('/subjects', {
+      const response = await apiService.get('/subjects', {
         params: { page, size: rowsPerPage },
       });
-      const data = response.data;
-      setSubjects(data.content);
-      setTotalElements(data.totalElements);
+      const data = response?.data || response || {};
+      const content = data.content || [];
+      setSubjects(Array.isArray(content) ? content : []);
+      setTotalElements(data.totalElements || 0);
     } catch (error: any) {
       console.error('Error fetching subjects:', error);
       showSnackbar(error.message || 'Failed to load subjects.', 'error');

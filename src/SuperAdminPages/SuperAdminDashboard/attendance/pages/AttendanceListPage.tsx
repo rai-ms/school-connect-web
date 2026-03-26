@@ -90,8 +90,9 @@ const AttendanceListPage: React.FC = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await apiService.get<ClassOption[]>('/classes');
-        setClasses(response.data ?? []);
+        const response = await apiService.get('/classes');
+        const data = response?.data || response || {};
+        setClasses(data.content || data || []);
       } catch {
         // Silently fail; the dropdown will just be empty
       }
@@ -105,19 +106,20 @@ const AttendanceListPage: React.FC = () => {
     try {
       if (selectedClassId && selectedDate) {
         // Filter by class and date
-        const response = await apiService.get<AttendanceRecord[]>(
+        const response = await apiService.get(
           `/attendance/class/${selectedClassId}`,
           { params: { date: selectedDate } }
         );
-        const data = response.data ?? [];
-        setRecords(data);
-        setTotalElements(data.length);
+        const data = response?.data || response || [];
+        const list = Array.isArray(data) ? data : data.content || [];
+        setRecords(list);
+        setTotalElements(list.length);
       } else {
         // Paginated list
-        const response = await apiService.get<PaginatedResponse>('/attendance', {
+        const response = await apiService.get('/attendance', {
           params: { page, size: rowsPerPage },
         });
-        const payload = response.data;
+        const payload = response?.data || response || {};
         setRecords(payload?.content ?? []);
         setTotalElements(payload?.totalElements ?? 0);
       }
