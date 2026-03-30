@@ -144,4 +144,13 @@ export const CONFIG_ENDPOINTS = {
   MOBILE: `${BASE_URL}/config/mobile`,
 };
 
+export const FILE_ENDPOINTS = {
+  UPLOAD: '/files/upload',
+  UPLOAD_MULTIPLE: '/files/upload/multiple',
+  DOWNLOAD: (id: string) => `/files/${id}/download`,
+  LIST: '/files',
+  ENTITY_FILES: (entityType: string, entityId: string) => `/files/entity/${entityType}/${entityId}`,
+  DELETE: (id: string) => `/files/${id}`,
+};
+
 export { BASE_URL };
