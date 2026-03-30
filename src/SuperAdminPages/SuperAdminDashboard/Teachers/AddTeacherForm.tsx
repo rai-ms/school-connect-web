@@ -37,6 +37,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { TeacherFormData } from './types/teacher.types';
 import { teacherAPI } from './api/teacherAPI';
 import apiService from '../../../service/apiService';
+import FileUploadButton from '../FileManagement/FileUploadButton';
 
 // Fallback if master data not seeded yet
 const FALLBACK_QUALIFICATIONS = ['B.Ed', 'M.Ed', 'B.Sc', 'M.Sc', 'B.A', 'M.A', 'Ph.D', 'D.El.Ed', 'B.Tech', 'M.Tech', 'B.Com', 'M.Com', 'MBA', 'Other'];
@@ -817,6 +818,15 @@ const AddTeacherForm: React.FC = () => {
                   </Box>
                 </Box>
               )}
+
+              <Box sx={{ mt: 3 }}>
+                <FileUploadButton
+                  entityType="TEACHER"
+                  label="Upload Documents to Server"
+                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                  multiple={true}
+                />
+              </Box>
             </Box>
             
             {/* Account Information Section */}

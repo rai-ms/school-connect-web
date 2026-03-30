@@ -54,6 +54,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import apiService from '../../../service/apiService';
 import { StudentFormData } from './types';
+import FileUploadButton from '../FileManagement/FileUploadButton';
 
 // Validation Schema
 const validationSchema = Yup.object({
@@ -655,6 +656,20 @@ const AddStudentForm: React.FC = () => {
               </Grid>
             </Box>
             
+            {/* Upload Documents */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 2, color: 'text.primary' }}>
+                Documents
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              <FileUploadButton
+                entityType="STUDENT"
+                label="Upload Documents"
+                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                multiple={true}
+              />
+            </Box>
+
             {/* Form Actions */}
             <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button

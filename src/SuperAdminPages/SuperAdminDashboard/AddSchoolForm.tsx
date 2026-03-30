@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '../../service/apiService';
 import { useNavigate } from 'react-router-dom';
+import FileUploadButton from './FileManagement/FileUploadButton';
 
 interface AdminUser {
   username: string;
@@ -710,6 +711,17 @@ const AddSchoolForm: React.FC = () => {
             />
           </div>
           
+          <h3>School Logo</h3>
+          <div className="form-group">
+            <FileUploadButton
+              entityType="SCHOOL"
+              label="Upload School Logo"
+              accept=".jpg,.jpeg,.png"
+              multiple={false}
+              maxSizeMB={5}
+            />
+          </div>
+
           <div className="form-actions">
             <button
               type="submit"
