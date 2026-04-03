@@ -58,6 +58,19 @@ const Drawer: React.FC<DrawerProps> = ({ onClose, onLogout }) => {
       ],
     },
 
+    // -- Super Admin subscription management --
+    {
+      key: 'subscriptions',
+      icon: <CreditCard className="w-5 h-5" />,
+      label: 'Subscriptions',
+      roles: ['superadmin'],
+      children: [
+        { label: 'Plans', path: '/dashboard/subscriptions/plans' },
+        { label: 'Overview', path: '/dashboard/subscriptions/overview' },
+        { label: 'Invoices', path: '/dashboard/subscriptions/invoices' },
+      ],
+    },
+
     // -- School Admin only --
     {
       key: 'students',

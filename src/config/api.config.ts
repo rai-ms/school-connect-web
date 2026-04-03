@@ -153,4 +153,27 @@ export const FILE_ENDPOINTS = {
   DELETE: (id: string) => `/files/${id}`,
 };
 
+// Subscription Management
+export const SUBSCRIPTION_ENDPOINTS = {
+  // SuperAdmin - Plans
+  PLANS: `${BASE_URL}/superadmin/subscription-plans`,
+  PLAN_BY_ID: (id: string) => `${BASE_URL}/superadmin/subscription-plans/${id}`,
+  // SuperAdmin - Subscriptions
+  SUBSCRIPTIONS: `${BASE_URL}/superadmin/subscriptions`,
+  SUBSCRIPTION_BY_TENANT: (tenantId: string) => `${BASE_URL}/superadmin/subscriptions/${tenantId}`,
+  SUBSCRIPTION_STATUS: (id: string) => `${BASE_URL}/superadmin/subscriptions/${id}/status`,
+  // SuperAdmin - Invoices
+  INVOICES: `${BASE_URL}/superadmin/subscriptions/invoices`,
+  INVOICE_BY_ID: (id: string) => `${BASE_URL}/superadmin/subscriptions/invoices/${id}`,
+  MARK_PAID: (id: string) => `${BASE_URL}/superadmin/subscriptions/invoices/${id}/mark-paid`,
+  CANCEL_INVOICE: (id: string) => `${BASE_URL}/superadmin/subscriptions/invoices/${id}/cancel`,
+  GENERATE_INVOICE: (tenantId: string) => `${BASE_URL}/superadmin/subscriptions/invoices/generate/${tenantId}`,
+  ADJUST_INVOICE: (id: string) => `${BASE_URL}/superadmin/subscriptions/invoices/${id}/adjust`,
+  // School Admin - Self-service
+  CURRENT: `${BASE_URL}/subscription/current`,
+  MY_INVOICES: `${BASE_URL}/subscription/invoices`,
+  PAY: (invoiceId: string) => `${BASE_URL}/subscription/pay/${invoiceId}`,
+  RECHARGE: `${BASE_URL}/subscription/recharge`,
+};
+
 export { BASE_URL };

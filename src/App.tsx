@@ -55,12 +55,17 @@ import AddNoticePage from './SuperAdminPages/SuperAdminDashboard/NoticeManagemen
 import EditNoticePage from './SuperAdminPages/SuperAdminDashboard/NoticeManagement/pages/EditNoticePage';
 
 // Attendance Management
-import { 
-  AttendanceListPage, 
-  MarkAttendancePage, 
-  ViewAttendancePage, 
-  EditAttendancePage 
+import {
+  AttendanceListPage,
+  MarkAttendancePage,
+  ViewAttendancePage,
+  EditAttendancePage
 } from './SuperAdminPages/SuperAdminDashboard/attendance';
+
+// Subscription Management
+import PlanManagementPage from './SuperAdminPages/SuperAdminDashboard/SubscriptionManagement/pages/PlanManagementPage';
+import SubscriptionOverviewPage from './SuperAdminPages/SuperAdminDashboard/SubscriptionManagement/pages/SubscriptionOverviewPage';
+import InvoiceManagementPage from './SuperAdminPages/SuperAdminDashboard/SubscriptionManagement/pages/InvoiceManagementPage';
 
 // Error Boundary Component
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -238,6 +243,11 @@ const DashboardLayout = ({ onLogout }: { onLogout: () => void }) => {
               <Route index element={<ExamListPage />} />
               <Route path="schedule" element={<ScheduleExamPage />} />
               <Route path="results" element={<ExamResultsPage />} />
+            </Route>
+            <Route path="subscriptions">
+              <Route path="plans" element={<PlanManagementPage />} />
+              <Route path="overview" element={<SubscriptionOverviewPage />} />
+              <Route path="invoices" element={<InvoiceManagementPage />} />
             </Route>
             <Route path="master-data" element={<MasterDataPage />} />
             <Route path="settings" element={<div className="bg-white p-6 rounded-lg shadow-sm">
